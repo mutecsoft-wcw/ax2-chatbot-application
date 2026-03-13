@@ -1,0 +1,26 @@
+/* 모든 요소의 기본 마진과 패딩을 제거하고 box-sizing을 설정 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  html, body, #root {
+    width: 100%;
+    height: 100%;
+    
+  }
+
+:root {
+    --gok-blue: rgb(0, 55, 100);    /* 정부청색 */
+    --gok-red: rgb(228, 3, 46);     /* 정부적색 */
+    --gok-gray: rgb(87, 87, 87);    /* 정부회색 */
+    --gok-white: #ffffff;
+  }
+  
+  .App {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Pretendard', -apple-system, sans-serif; /* 깔끔한 폰트 추천 */
+  }
