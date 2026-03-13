@@ -14,8 +14,16 @@ const ChatWindow = ({ initialMessage }) => {
     });
 
     const handleNewMessage = (message) => {
+
+        if (!message || (!message.text && !message.html)) return;
+
+        const messageToSave = {
+            role: message.role,
+            text: message.text
+        }
+
         setHistory(prev => {
-            const newHistory = [...prev, message];
+            const newHistory = [...prev, messageToSave];
             localStorage.setItem('chatHistory', JSON.stringify(newHistory));
             return newHistory;
         });
@@ -30,14 +38,13 @@ const ChatWindow = ({ initialMessage }) => {
 
     useEffect(() => {
         if (initialMessage && chatRef.current && history.length === 0) {
-            // DeepChat 컴포넌트가 완전히 렌더링될 시간을 조금 줍니다.
             const timeout = setTimeout(() => {
-                chatRef.current.submitUserMessage(initialMessage);
-            }, 300); // 0.3초 정도 여유를 두는 것이 안전합니다.
+                chatRef.current.submitUserMessage({text: initialMessage});
+            }, 300); // 0.3초 정도 여유
 
             return () => clearTimeout(timeout); // 클린업 함수
         }
-    }, [initialMessage]);
+    }, [initialMessage, history.length]);
 
     // 모달 닫았을 때 새로고침 방지
     const closeModals = (e) => {
