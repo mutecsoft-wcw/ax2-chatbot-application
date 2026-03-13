@@ -3,17 +3,41 @@ import React, { useState, useEffect, useRef } from 'react';
 import { DeepChat } from 'deep-chat-react';
 import { responseInterceptor } from '../utils/ResponseInterceptor';
 
-const ChatWindow = () => {
+const ChatWindow = ({ initialMessage }) => {
     const chatRef = useRef(null);
     const [modalVideoUrl, setModalVideoUrl] = useState(null);
     const [modalImageUrl, setModalImageUrl] = useState(null);
     const gokBlue = 'rgb(0, 55, 100)';
+    const [history, setHistory] = useState(() => {
+        const saved = localStorage.getItem('chatHistory');
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    const handleNewMessage = (message) => {
+        setHistory(prev => {
+            const newHistory = [...prev, message];
+            localStorage.setItem('chatHistory', JSON.stringify(newHistory));
+            return newHistory;
+        });
+    };
+
 
     // 동영상 모달 실행을 위한 전역 함수 등록
     useEffect(() => {
         window.openVideoModal = (url) => setModalVideoUrl(url);
         window.openImageModal = (url) => setModalImageUrl(url);
     }, []);
+
+    useEffect(() => {
+        if (initialMessage && chatRef.current && history.length === 0) {
+            // DeepChat 컴포넌트가 완전히 렌더링될 시간을 조금 줍니다.
+            const timeout = setTimeout(() => {
+                chatRef.current.submitUserMessage(initialMessage);
+            }, 300); // 0.3초 정도 여유를 두는 것이 안전합니다.
+
+            return () => clearTimeout(timeout); // 클린업 함수
+        }
+    }, [initialMessage]);
 
     // 모달 닫았을 때 새로고침 방지
     const closeModals = (e) => {
@@ -36,8 +60,10 @@ const ChatWindow = () => {
                 textInput={textInputStyle}
                 submitButtonStyles={submitButtonStyle(gokBlue)}
                 html={{ useHtml: true }}
-                
-                connect={{url: 'http://localhost:8000/stream-chat', method: 'POST', stream: true}}
+                history={history}
+                onMessage={handleNewMessage}
+
+                connect={{ url: 'http://localhost:8000/stream-chat', method: 'POST', stream: true }}
                 responseInterceptor={responseInterceptor}
                 stream={true}
 

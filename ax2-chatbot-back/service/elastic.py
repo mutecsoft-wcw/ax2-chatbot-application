@@ -13,14 +13,14 @@ async def search_es_data(query_text: str, index_name: str = "chs_guide_docs"):
             body={
                 "query": {
                     "match": {
-                        "content": query_text  # 검색할 필드명에 맞게 수정
+                        "content": content  # 검색할 필드명에 맞게 수정
                     }
                 }
             }
         )
         # 검색 결과 중 상위 문서들의 텍스트만 추출
         hits = response['hits']['hits']
-        return [hit['_source']['content'] for hit in hits]
+        return [hit['_source']['content'] for hit in response['hits']['hits']]
     except Exception as e:
         print(f"ES 검색 에러: {e}")
         return []

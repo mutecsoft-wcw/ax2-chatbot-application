@@ -4,7 +4,7 @@ from openai import AsyncOpenAI
 from config.config import settings
 from service.elastic import search_es_data
 
-client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+client = AsyncOpenAI(base_url=settings.GEMMA_BASE_URL)
 
 def load_prompt():
     prompt_path = os.path.join(os.path.dirname(__file__), "prompt.txt")
