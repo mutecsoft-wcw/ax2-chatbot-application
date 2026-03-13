@@ -62,8 +62,8 @@ class LlmService:
                 if chunk:
                     # 1. ensure_ascii=False: 한글을 그대로 출력
                     # 2. + "\n": 각 조각을 줄바꿈으로 구분 (Deep Chat 인식용)
-                    json_data = json.dumps({"text": str(chunk)}, ensure_ascii=False)
-                    yield json_data + "\n"
+                    content = json.dumps({"text": str(chunk)}, ensure_ascii=False)
+                    yield f"data: {content}\n\n"
         except Exception as e:
             yield f"Error: {str(e)}"
 
