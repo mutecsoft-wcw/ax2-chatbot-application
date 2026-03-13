@@ -1,0 +1,23 @@
+from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
+from app.schemas.chat_schema import LlmRequest
+from app.services.llm_service import llm_service
+
+router = APIRouter()
+
+@router.post("/stream-chat")
+async def chat(request: LlmRequest):
+    user_input = ""
+
+    if request.messages:
+        last_message = request.messages[-1]
+        user_input = last_message.get("text") or last_message.get("content") or str(last_message)
+
+    return StreamingResponse(
+        llm_service.get_chat_response(user_input, request.session_id),
+        media_type="text/event-stream",
+        headers={
+            "X-Accel-Buffering": "no",  # 이 설정이 없으면 스트리밍이 한꺼번에 쏟아질 수 있어
+            "Cache-Control": "no-cache"
+        }
+    )
