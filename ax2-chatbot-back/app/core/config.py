@@ -8,6 +8,8 @@ class Settings:
         with open(config_path, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
             self.llm = config["llm"]
+            self.embedding = config["embedding"]
+            self.elasticsearch = config["elasticsearch"]
             self.base_url = self.llm["base_url"].rstrip("/")
 
 settings = Settings()
