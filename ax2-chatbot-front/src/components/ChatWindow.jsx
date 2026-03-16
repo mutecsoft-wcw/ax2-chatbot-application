@@ -3,17 +3,48 @@ import React, { useState, useEffect, useRef } from 'react';
 import { DeepChat } from 'deep-chat-react';
 import { responseInterceptor } from '../utils/ResponseInterceptor';
 
-const ChatWindow = () => {
+const ChatWindow = ({ initialMessage }) => {
     const chatRef = useRef(null);
     const [modalVideoUrl, setModalVideoUrl] = useState(null);
     const [modalImageUrl, setModalImageUrl] = useState(null);
     const gokBlue = 'rgb(0, 55, 100)';
+    const [history, setHistory] = useState(() => {
+        const saved = localStorage.getItem('chatHistory');
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    const handleNewMessage = (message) => {
+
+        if (!message || (!message.text && !message.html)) return;
+
+        const messageToSave = {
+            role: message.role,
+            text: message.text
+        }
+
+        setHistory(prev => {
+            const newHistory = [...prev, messageToSave];
+            localStorage.setItem('chatHistory', JSON.stringify(newHistory));
+            return newHistory;
+        });
+    };
+
 
     // 동영상 모달 실행을 위한 전역 함수 등록
     useEffect(() => {
         window.openVideoModal = (url) => setModalVideoUrl(url);
         window.openImageModal = (url) => setModalImageUrl(url);
     }, []);
+
+    useEffect(() => {
+        if (initialMessage && chatRef.current && history.length === 0) {
+            const timeout = setTimeout(() => {
+                chatRef.current.submitUserMessage({text: initialMessage});
+            }, 300); // 0.3초 정도 여유
+
+            return () => clearTimeout(timeout); // 클린업 함수
+        }
+    }, [initialMessage, history.length]);
 
     // 모달 닫았을 때 새로고침 방지
     const closeModals = (e) => {
@@ -36,8 +67,10 @@ const ChatWindow = () => {
                 textInput={textInputStyle}
                 submitButtonStyles={submitButtonStyle(gokBlue)}
                 html={{ useHtml: true }}
-                
-                connect={{url: 'http://localhost:8000/stream-chat', method: 'POST', stream: true}}
+                history={history}
+                onMessage={handleNewMessage}
+
+                connect={{ url: 'http://localhost:8000/stream-chat', method: 'POST', stream: true }}
                 responseInterceptor={responseInterceptor}
                 stream={true}
 
