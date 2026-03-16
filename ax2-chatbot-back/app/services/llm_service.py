@@ -14,7 +14,7 @@ class LlmService:
             base_url=settings.llm["base_url"],
             model=settings.llm["model_name"],
             temperature=settings.llm.get("temperature", 0.7),
-            max_tokens=settings.llm.get("max_token", 100)
+            max_tokens=settings.llm.get("max_tokens", 2048)
         )
 
         # 프롬프트 템플릿 정의
@@ -63,7 +63,8 @@ class LlmService:
                     # 1. ensure_ascii=False: 한글을 그대로 출력
                     # 2. + "\n": 각 조각을 줄바꿈으로 구분 (Deep Chat 인식용)
                     content = json.dumps({"text": str(chunk)}, ensure_ascii=False)
-                    yield f"data: {content}\n\n"
+                    yield f"data: {content}\n\n"      
+                
         except Exception as e:
             yield f"Error: {str(e)}"
 

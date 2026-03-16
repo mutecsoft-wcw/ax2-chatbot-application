@@ -1,18 +1,17 @@
-import { ResponseManager } from "./ResponseManager";
-
 export const responseInterceptor = (response) => {
+    if (typeof response === 'string') {
+        const clean = response.replace(/^data:\s*/, '').trim();
+        if (!clean || clean === '[DONE]') return null;
 
-  if (!response || Object.keys(response).length === 0) {
-    return { text: "" };
-  }
-
-  if (response.text !== undefined && !response.type) {
-    return { text: response.text };
-  }
-
-  if (response.type) {
-    return ResponseManager.processResponse(response);
-  }
-
-  return response;
+        try {
+            const parsed = JSON.parse(clean);
+            return { 
+                text: parsed.text || "", 
+                isFinal: false 
+            };
+        } catch (e) {
+            return { text: response, isFinal: false };
+        }
+    }
+    return response;
 };
