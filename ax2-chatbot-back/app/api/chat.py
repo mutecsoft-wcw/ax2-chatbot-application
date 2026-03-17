@@ -5,6 +5,7 @@ from app.services.llm_service import llm_service
 
 router = APIRouter()
 
+
 @router.post("/stream-chat")
 async def chat(request: LlmRequest):
     user_input = ""
@@ -17,7 +18,7 @@ async def chat(request: LlmRequest):
         llm_service.get_chat_response(user_input, request.session_id),
         media_type="text/event-stream",
         headers={
-            "X-Accel-Buffering": "no",  # 이 설정이 없으면 스트리밍이 한꺼번에 쏟아질 수 있어
+            "X-Accel-Buffering": "no",
             "Cache-Control": "no-cache"
         }
     )

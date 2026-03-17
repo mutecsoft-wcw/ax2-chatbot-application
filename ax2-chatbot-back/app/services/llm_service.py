@@ -13,6 +13,7 @@ from app.core.config import settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class LlmService:
     def __init__(self):
         # 임베딩 모델 설정
@@ -81,8 +82,8 @@ class LlmService:
 
         return self.store[session_id]
 
-    async def get_chat_response(self, user_prompt: str, session_id:str):
-        # 텍스트를 바로 엘라스틱서치에 검색!
+    async def get_chat_response(self, user_prompt: str, session_id: str):
+        # 텍스트를 바로 엘라스틱서치에 검색
         try:
             docs = await self.vector_store.asimilarity_search(user_prompt, k=5)
         except Exception as e:
@@ -117,11 +118,12 @@ class LlmService:
             ):
                 if chunk:
                     content = json.dumps({"text": str(chunk)}, ensure_ascii=False)
-                    yield f"data: {content}\n\n"      
-                
+                    yield f"data: {content}\n\n"
+
         except Exception as e:
             logger.error(f"Error during chain execution: {e}")
             error_content = json.dumps({"text": f"Error: {str(e)}"}, ensure_ascii=False)
             yield f"Error: {error_content}\n\n"
+
 
 llm_service = LlmService()
