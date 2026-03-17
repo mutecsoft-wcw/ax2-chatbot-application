@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
-from app.schemas.chat_schema import LlmRequest
-from app.services.llm_service import llm_service
+from app.schemas.chat import LlmRequest
+from app.services import chat_service
 
 router = APIRouter()
 
@@ -15,7 +15,7 @@ async def chat(request: LlmRequest):
         user_input = last_message.get("text") or last_message.get("content") or str(last_message)
 
     return StreamingResponse(
-        llm_service.get_chat_response(user_input, request.session_id),
+        chat_service.get_chat_response(user_input, request.session_id),
         media_type="text/event-stream",
         headers={
             "X-Accel-Buffering": "no",
