@@ -15,7 +15,7 @@ async def chat(request: LlmRequest):
         user_input = last_message.get("text") or last_message.get("content") or str(last_message)
 
     return StreamingResponse(
-        chat_service.get_chat_response(user_input, request.session_id),
+        chat_service.get_chat_response(user_input),
         media_type="text/event-stream",
         headers={
             "X-Accel-Buffering": "no",
