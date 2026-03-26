@@ -1,0 +1,28 @@
+services:
+  # 파이썬 백엔드 서비스
+  backend:
+    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/backend:lastest
+    platform: linux/amd64
+    build: ./ax2-chatbot-back
+    container_name: ax2-chatbot-backend
+    ports:
+      - "18000:18000"
+    networks:
+      - my-network
+
+  # 리액트 프론트엔드 서비스
+  frontend:
+    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/frontend:lastest
+    platform: linux/amd64
+    build: ./ax2-chatbot-front
+    container_name: ax2-chatbot-frontend
+    ports:
+      - "13000:80"
+    depends_on:
+      - backend  # 백엔드가 먼저 실행된 후 프론트 실행
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge

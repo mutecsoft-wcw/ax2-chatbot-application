@@ -26,3 +26,4 @@ yarn-error.log*
 .env
 ax2-chatbot-front/.env
 ax2-chatbot-back/.env
+.idea
