@@ -1,5 +1,5 @@
 from fastapi.middleware.cors import CORSMiddleware
-from config import settings
+from app.core.config import settings
 
 # TODO[sjh] origin .env이나 config.yml파일로 관리
 def cors(app):
