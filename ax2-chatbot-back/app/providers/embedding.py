@@ -7,7 +7,8 @@ def get_embeddings():
         return OpenAIEmbeddings(
             api_key=settings.embedding.get("api_key", "EMPTY"),
             base_url=settings.embedding["base_url"],
-            model=settings.embedding["text_model"]  # 네 설정 파일의 키값에 맞췄어!
+            model=settings.embedding["text_model"],
+            check_embedding_ctx_length=False,
         )
     except Exception as e:
         logger.critical(f"임베딩 모델 로드 실패: {e}")
