@@ -13,20 +13,26 @@ const ChatWindow = ({ initialMessage }) => {
         return saved ? JSON.parse(saved) : [];
     });
 
-    const handleNewMessage = (message) => {
+    const initialHistory = React.useMemo(() => {
+        const saved = localStorage.getItem('chatHistory');
+        return saved ? JSON.parse(saved) : [];
+    }, []);
 
+    const handleNewMessage = (body) => {
+        const { message, isHistory, isFinal } = body;
+
+        // 스트림 진행 중이거나 히스토리 로딩이면 무시
+        if (isHistory || isFinal === false) return;
         if (!message || (!message.text && !message.html)) return;
-
-        const messageToSave = {
+        
+        const savedHistory = JSON.parse(localStorage.getItem('chatHistory') || "[]");
+        const newMessage = {
             role: message.role,
-            text: message.text
-        }
+            text: message.text || message.html
+        };
 
-        setHistory(prev => {
-            const newHistory = [...prev, messageToSave];
-            localStorage.setItem('chatHistory', JSON.stringify(newHistory));
-            return newHistory;
-        });
+        const newHistory = [...savedHistory, newMessage];
+        localStorage.setItem('chatHistory', JSON.stringify(newHistory));
     };
 
 
@@ -39,7 +45,7 @@ const ChatWindow = ({ initialMessage }) => {
     useEffect(() => {
         if (initialMessage && chatRef.current && history.length === 0) {
             const timeout = setTimeout(() => {
-                chatRef.current.submitUserMessage({text: initialMessage});
+                chatRef.current.submitUserMessage({ text: initialMessage });
             }, 300); // 0.3초 정도 여유
 
             return () => clearTimeout(timeout); // 클린업 함수
@@ -67,10 +73,10 @@ const ChatWindow = ({ initialMessage }) => {
                 textInput={textInputStyle}
                 submitButtonStyles={submitButtonStyle(gokBlue)}
                 html={{ useHtml: true }}
-                history={history}
+                history={initialHistory}
                 onMessage={handleNewMessage}
 
-                connect={{ url: 'http://localhost:8000/stream-chat', method: 'POST', stream: true }}
+                connect={{ url: process.env.REACT_APP_API_URL, method: 'POST', stream: 'sse' }}
                 responseInterceptor={responseInterceptor}
                 stream={true}
 
