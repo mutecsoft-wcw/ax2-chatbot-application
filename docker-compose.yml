@@ -1,8 +1,9 @@
 services:
   # 파이썬 백엔드 서비스
   backend:
-    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/backend:v1.0.1
+    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/backend:v1.0.2
     platform: linux/amd64
+    restart: always
     build: ./ax2-chatbot-back
     container_name: ax2-chatbot-backend
     ports:
@@ -12,8 +13,9 @@ services:
 
   # 리액트 프론트엔드 서비스
   frontend:
-    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/frontend:v1.0.1
+    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/frontend:v1.0.2
     platform: linux/amd64
+    restart: always
     build: ./ax2-chatbot-front
     container_name: ax2-chatbot-frontend
     ports:
