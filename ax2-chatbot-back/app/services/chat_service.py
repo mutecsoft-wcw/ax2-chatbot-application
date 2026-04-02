@@ -1,29 +1,27 @@
+import asyncio
+from typing import Any
+
 from langchain_core.messages import BaseMessage, SystemMessage, ToolMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 
 from app.core import logger
 from app.schemas import ChatResponse
 from app.utils.file_utils import load_prompt_file
-
-from app.providers import llm_model, search_chs_guide_tool, rag_tool_schema
+from app.providers import llm_model, tools
 
 
 class ChatService:
     def __init__(self):
         self.llm = llm_model
-        self.tools = [rag_tool_schema]
-        self.tool_router_prompt = load_prompt_file("tool-router-prompt-kor.txt")
+        self.tools = tools
+        self.tool_handlers = {tool.name: tool for tool in self.tools}
+        self.llm_with_tools = self.llm.bind_tools(self.tools)
         self.final_response_prompt = load_prompt_file("public-guide.txt")
-
-        self.tool_handlers = {
-            "search_chs_guide_tool": search_chs_guide_tool
-        }
 
     async def get_chat_response(self, user_prompt: str):
         try:
-            logger.info(f"[STEP 1] 대화 요청 수신: {user_prompt[:50]}...")
-
             # 1. 메시지 초기화
+            logger.info(f"[STEP 1] 대화 요청 수신: {user_prompt[:50]}...")
             initial_messages = self._prepare_initial_messages(user_prompt)
 
             # 2. 도구 호출 여부 판단 및 실행
@@ -34,7 +32,7 @@ class ChatService:
             logger.info(f"[STEP 3] 도구 호출 결과에 따른 자료 검색")
             messages = await self._process_tool_results(response, initial_messages)
 
-            # 3. 최종 답변 생성 및 스트리밍
+            # 4. 최종 답변 생성 및 스트리밍
             logger.info(f"[STEP 4] 최종 답변 스트리밍 시작")
             async for chunk in self._stream_final_response(messages):
                 yield chunk
@@ -44,18 +42,17 @@ class ChatService:
             error_response = ChatResponse(text="서비스 처리 중 오류가 발생했습니다.")
             yield f"data: {error_response.model_dump_json()}\n\n"
 
-    def _prepare_initial_messages(self, user_prompt: str) -> list[BaseMessage]:
+    @staticmethod
+    def _prepare_initial_messages(user_prompt: str) -> list[BaseMessage]:
         prompt_template = ChatPromptTemplate.from_messages([
-            ("system", self.tool_router_prompt),
             ("human", "{user_input}")
         ])
 
         return prompt_template.format_messages(user_input=user_prompt)
 
     async def _router_tool(self, messages: list[BaseMessage]) -> AIMessage:
-        llm_with_tools = self.llm.bind_tools(self.tools)
-
-        response = await llm_with_tools.ainvoke(messages)
+        response = await self.llm_with_tools.ainvoke(messages)
+        logger.info(response)
 
         if response.tool_calls:
             logger.info(f"[STEP 2] 도구 호출 감지: {len(response.tool_calls)}개")
@@ -66,16 +63,16 @@ class ChatService:
 
     async def _process_tool_results(self, response: AIMessage, messages: list[BaseMessage]):
         if response.tool_calls:
-            messages.append(response)
             logger.info(f"[STEP 3] 도구 실행 파이프라인 진입")
-            messages = await self._execute_tool_calls(response.tool_calls, messages)
+            current_messages = messages + [response]
+            tool_messages = await self._execute_tool_calls(response.tool_calls)
+            return current_messages + list(tool_messages)
         else:
             logger.info(f"[STEP 3] 도구 미사용 판단. 일반 대화 처리")
+            return messages
 
-        return messages
-
-    async def _execute_tool_calls(self, tool_calls, messages: list[BaseMessage]) -> list[BaseMessage]:
-        for i, tool_call in enumerate(tool_calls):
+    async def _execute_tool_calls(self, tool_calls) -> tuple[Any]:
+        async def run_single_tool(tool_call) -> ToolMessage:
             function_name = tool_call["name"]
             args = tool_call["args"]
             tool_call_id = tool_call["id"]
@@ -83,8 +80,8 @@ class ChatService:
             handler = self.tool_handlers.get(function_name)
             if handler:
                 try:
-                    tool_result = await handler(**args)
-                    logger.info(f"[STEP 3-RESULT] {i+1}번 도구 실행 완료 (결과 길이: {len(str(tool_result))}자)")
+                    tool_result = await handler.ainvoke(args)
+                    logger.info(f"[STEP 3-RESULT] {function_name} 도구 실행 완료 (결과 길이: {len(str(tool_result))}자)")
                 except Exception as e:
                     logger.error(f"[TOOL ERROR] 도구 '{function_name}' 실행 중 오류 발생: {e}", exc_info=True)
                     tool_result = f"도구 '{function_name}'을(를) 실행하는 중 오류가 발생했습니다."
@@ -92,28 +89,20 @@ class ChatService:
                 logger.warning(f"[WARNING] 알 수 없는 도구 호출: {function_name}")
                 tool_result = "해당 기능을 수행할 수 있는 도구를 찾을 수 없습니다."
 
-            messages.append(ToolMessage(
+            return ToolMessage(
                 tool_call_id=tool_call_id,
                 name=function_name,
                 content=str(tool_result)
-            ))
+            )
 
-        return messages
+        return await asyncio.gather(*(run_single_tool(tc) for tc in tool_calls))
 
     async def _stream_final_response(self, messages: list[BaseMessage]):
-        # 시스템 프롬프트 교체
-        found_system_message = False
-        for i, msg in enumerate(messages):
-            if isinstance(msg, SystemMessage):
-                messages[i] = SystemMessage(content=self.final_response_prompt)
-                found_system_message = True
-                break
-
-        if not found_system_message:
-            messages.insert(0, SystemMessage(content=self.final_response_prompt))
+        system_message = SystemMessage(content=self.final_response_prompt)
+        final_messages = [system_message] + messages
 
         # 최종 답변 스트리밍 시작
-        async for chunk in self.llm.astream(messages):
+        async for chunk in self.llm.astream(final_messages):
             if chunk.content:
                 yield f"data: {ChatResponse(text=chunk.content).model_dump_json()}\n\n"
 
