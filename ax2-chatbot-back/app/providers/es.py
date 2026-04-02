@@ -68,6 +68,13 @@ chs_question_guide_retriever = get_elasticsearch_retriever(
     num_candidates=50
 )
 
+chs_form_retriever = get_elasticsearch_retriever(
+    index_name=settings.elasticsearch["indices"]["chs_form_index"],
+    vector_field="text_vector",
+    k=3,
+    num_candidates=50
+)
+
 knhanes_raw_guide_retriever = get_elasticsearch_retriever(
     index_name=settings.elasticsearch["indices"]["knhanes_raw_guide_index"],
     vector_field="text_vector",
