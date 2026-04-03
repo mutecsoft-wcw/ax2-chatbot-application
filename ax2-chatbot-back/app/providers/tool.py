@@ -131,6 +131,7 @@ async def nhip_health_info_tool(query: str) -> str:
 tools = [
     chs_raw_guide_tool,
     chs_question_guide_tool,
+    chs_form_tool,
     knhanes_raw_guide_tool,
     nhip_health_info_tool,
 ]
