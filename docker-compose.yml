@@ -25,6 +25,17 @@ services:
     networks:
       - my-network
 
+  # Redis
+  redis:
+    image: redis:alpine
+    platform: linux/amd64
+    restart: always
+    container_name: ax2-chatbot-redis
+    ports:
+      - "18090:6379"
+    networks:
+      - my-network
+
 networks:
   my-network:
     driver: bridge

@@ -3,6 +3,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { DeepChat } from 'deep-chat-react';
 import { responseInterceptor } from '../utils/ResponseInterceptor';
 
+// TODO[sjh] 세션 저장 방식 논의 필요
+const generateSessionId = () => {
+    return 'sess-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+};
+
 const ChatWindow = ({ initialMessage }) => {
     const chatRef = useRef(null);
     const [modalVideoUrl, setModalVideoUrl] = useState(null);
@@ -12,6 +17,7 @@ const ChatWindow = ({ initialMessage }) => {
         const saved = localStorage.getItem('chatHistory');
         return saved ? JSON.parse(saved) : [];
     });
+    const [sessionId, setSessionId] = useState(null);
 
     const initialHistory = React.useMemo(() => {
         const saved = localStorage.getItem('chatHistory');
@@ -40,6 +46,16 @@ const ChatWindow = ({ initialMessage }) => {
     useEffect(() => {
         window.openVideoModal = (url) => setModalVideoUrl(url);
         window.openImageModal = (url) => setModalImageUrl(url);
+    }, []);
+
+    // session ID를 로드하거나 새로 생성
+    useEffect(() => {
+        let sid = localStorage.getItem('chatSessionId');
+        if (!sid) {
+            sid = generateSessionId();
+            localStorage.setItem('chatSessionId', sid);
+        }
+        setSessionId(sid);
     }, []);
 
     useEffect(() => {
@@ -76,7 +92,12 @@ const ChatWindow = ({ initialMessage }) => {
                 history={initialHistory}
                 onMessage={handleNewMessage}
 
-                connect={{ url: process.env.REACT_APP_API_URL, method: 'POST', stream: 'sse' }}
+                connect={{
+                    url: process.env.REACT_APP_API_URL,
+                    method: 'POST',
+                    stream: 'sse',
+                    additionalBodyProps: { sessionId: sessionId }
+                }}
                 responseInterceptor={responseInterceptor}
                 stream={true}
 
