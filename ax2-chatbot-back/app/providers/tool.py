@@ -13,7 +13,8 @@ class SearchGuideInput(BaseModel):
     query: str = Field(
         description=(
             "A specific single keyword or short phrase to search. "
-            "[CRITICAL RULE]: If you need to compare or simultaneously search two or more documents, concepts, or years, "
+            "[CRITICAL RULE 1]: NEVER call this tool for simple greetings (e.g., '안녕하세요', '안녕', '반가워'), gratitude, or casual conversation. If the user is just greeting, DO NOT invoke any tools. "
+            "[CRITICAL RULE 2]: If you need to compare or simultaneously search two or more documents, concepts, or years, "
             "NEVER combine them into a single query. "
             "You MUST split the question and call this tool multiple times independently (Parallel Calling). "
             "(e.g., User asks: 'A지침서와 B지침서의 목적' -> Call 1: query='A지침서 목적', Call 2: query='B지침서 목적')"
@@ -122,6 +123,7 @@ async def nhip_health_info_tool(query: str) -> str:
 
     [USAGE CONDITION]: You MUST use this tool ONLY when pure medical guidelines are needed.
     DO NOT use this tool for survey methodologies (조사 방법론), statistical variables (통계 변수), or data structures.
+    [CRITICAL]: NEVER use this tool for general chat, greetings ('안녕', '안녕하세요'), or non-health related queries.
     """
 
     docs = await nhip_health_info_retriever.ainvoke(query)

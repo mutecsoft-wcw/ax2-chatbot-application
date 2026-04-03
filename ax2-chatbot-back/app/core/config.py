@@ -24,6 +24,7 @@ class Settings:
                 self.elasticsearch = config["elasticsearch"]
                 self.base_url = self.llm["base_url"].rstrip("/")
                 self.cors_url = config["cors_url"]
+                self.redis = config["redis"]
 
                 logger.info("설정 파일 로드 성공.")
 
