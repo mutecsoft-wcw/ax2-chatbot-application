@@ -43,7 +43,8 @@
     outline: none;
     width: 100%;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    text-align: center;
+    text-align: left;
+    align-items: center;
   }
   
   .search-icon-btn {
