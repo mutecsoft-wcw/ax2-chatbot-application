@@ -18,6 +18,39 @@ const ChatWindow = ({ initialMessage }) => {
         return saved ? JSON.parse(saved) : [];
     });
     const [sessionId, setSessionId] = useState(null);
+    const fileInputRef = useRef(null);
+    const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+
+    const handleFileUpload = async (e) => {
+        // 이벤트 객체 확인 및 파일 추출
+        // 클릭해서 선택할 때는 e.target.files / 드래그 시에는 e.dataTransfer.files
+        const files = e.target?.files || e.dataTransfer?.files;
+
+        // 파일이 없으면 즉시 종료 (undefined 체크)
+        if (!files || files.length === 0) return;
+
+        const file = files[0];
+
+        if (chatRef.current) {
+            chatRef.current.submitUserMessage({
+                text: `[파일 첨부]\n${file.name}`,
+            });
+        }
+
+        // const formData = new FormData();
+        // formData.append('file', file);
+        // if (sessionId) {
+        //     formData.append('sessionId', sessionId);
+        // }
+
+        try {
+            // TODO[wcw] 서버에 파일 업로드 로직 axios.post(...)
+            // const response = await axios.post(`${process.env.REACT_APP_API_URL}/upload`, formData);
+            setIsFileModalOpen(false);
+        } catch (error) {
+            console.error("업로드 중 오류:", error);
+        }
+    };
 
     const initialHistory = React.useMemo(() => {
         const saved = localStorage.getItem('chatHistory');
@@ -30,7 +63,7 @@ const ChatWindow = ({ initialMessage }) => {
         // 스트림 진행 중이거나 히스토리 로딩이면 무시
         if (isHistory || isFinal === false) return;
         if (!message || (!message.text && !message.html)) return;
-        
+
         const savedHistory = JSON.parse(localStorage.getItem('chatHistory') || "[]");
         const newMessage = {
             role: message.role,
@@ -80,7 +113,12 @@ const ChatWindow = ({ initialMessage }) => {
 
     return (
         <div style={containerStyle}>
-
+            <div style={uploadHeaderStyle}>
+                <span style={headerTitleStyle}>건강정보 챗봇</span>
+                <button onClick={() => setIsFileModalOpen(true)} style={uploadButtonStyle}>
+                    📄 리포트 업로드
+                </button>
+            </div>
             <DeepChat
                 ref={chatRef}
                 style={chatComponentStyle}
@@ -129,11 +167,76 @@ const ChatWindow = ({ initialMessage }) => {
                     </div>
                 </div>
             )}
+
+            {/* 리포트 파일 업로드 모달 */}
+            {isFileModalOpen && (
+                <div style={modalOverlay} onClick={() => setIsFileModalOpen(false)}>
+                    <div style={uploadModalContent} onClick={e => e.stopPropagation()}>
+                        <div style={modalHeader}>
+                            <h3 style={{ margin: 0 }}>리포트 파일 업로드</h3>
+                            <span style={closeBtn} onClick={() => setIsFileModalOpen(false)}>&times;</span>
+                        </div>
+
+                        <div
+                            style={dropZoneStyle}
+                            onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = '#3b5bdb'; }}
+                            onDrop={(e) => { e.preventDefault(); handleFileUpload(e); }}
+                            onClick={() => fileInputRef.current.click()}
+                            onDragLeave={(e) => {
+                                e.currentTarget.style.borderColor = '#ccc';
+                            }}
+                        >
+                            <p>여기로 HTML 파일을 드래그하거나<br />클릭해서 선택하세요.</p>
+                            <button style={findFileBtn}>파일 찾기</button>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileUpload}
+                                style={{ display: 'none' }}
+                                accept=".html"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
 // --- 스타일 변수 ---
+const uploadHeaderStyle = {
+    width: '100%',
+    maxWidth: '800px',
+    display: 'flex',
+    alignItems: 'center',
+    padding: '15px 20px',
+    borderRadius: '15px 15px 0 0',
+    borderBottom: '1px solid #eee',
+    marginBottom: '-1px',
+    zIndex: 1,
+    justifyContent: 'space-between'
+};
+
+const headerTitleStyle = {
+    fontSize: '1.1rem',
+    fontWeight: 'bold',
+    color: '#333'
+};
+
+const uploadButtonStyle = {
+    backgroundColor: 'var(--gok-blue)',
+    color: 'white',
+    border: 'none',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    transition: 'background-color 0.2s'
+};
+
 const containerStyle = {
     width: '100%', height: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column',
     justifyContent: 'center', alignItems: 'center', padding: '20px', backgroundColor: '#f4f7f9'
@@ -168,6 +271,25 @@ const submitButtonStyle = (gokBlue) => ({
     },
     hover: { container: { backgroundColor: 'rgb(0, 75, 130)' } }
 });
+
+const uploadModalContent = {
+    backgroundColor: 'white', padding: '30px', borderRadius: '15px',
+    width: '450px', textAlign: 'center', position: 'relative'
+};
+
+const modalHeader = {
+    display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px'
+};
+
+const dropZoneStyle = {
+    border: '2px dashed #ccc', borderRadius: '10px', padding: '40px 20px',
+    backgroundColor: '#fff', cursor: 'pointer', transition: 'border 0.3s'
+};
+
+const findFileBtn = {
+    backgroundColor: '#4c6ef5', color: 'white', border: 'none',
+    padding: '8px 25px', borderRadius: '20px', cursor: 'pointer', marginTop: '10px'
+};
 
 const modalOverlay = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' };
 const modalContent = { position: 'relative', width: '90%', maxWidth: '800px' };
