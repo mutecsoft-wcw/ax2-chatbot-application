@@ -1,7 +1,7 @@
 services:
   # 파이썬 백엔드 서비스
   backend:
-    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/backend:v1.0.5
+    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/backend:v1.0.6
     platform: linux/amd64
     restart: always
     build: ./ax2-chatbot-back
@@ -13,7 +13,7 @@ services:
 
   # 리액트 프론트엔드 서비스
   frontend:
-    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/frontend:v1.0.5
+    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/frontend:v1.0.6
     platform: linux/amd64
     restart: always
     build: ./ax2-chatbot-front
@@ -27,7 +27,8 @@ services:
 
   # Redis
   redis:
-    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/redis:alpine
+    image: ${MUTECSOFT_GPU1_IP}:${MUTECSOFT_GPU1_PORT}/chatbot/redis:amd64-only
+    platform: linux/amd64
     restart: always
     container_name: ax2-chatbot-redis
     ports:
