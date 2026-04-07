@@ -1,7 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from fastapi.responses import StreamingResponse
 from app.schemas.chat import LlmRequest
-from app.services import public_chat_service, internal_chat_service
+from app.services import public_chat_service, internal_chat_service, redis_service
 
 router = APIRouter()
 
@@ -49,3 +49,10 @@ async def internal_chat(request: LlmRequest):
             "Cache-Control": "no-cache"
         }
     )
+
+# 대화 내역 조회
+@router.get("/history")
+async def chat_history(sessionId: str = Query(None, description="조회할 세션 ID")):
+    # RequestParam형식으로 요청을 보내야함
+    # ex) /history?sessionId=session_id
+    return redis_service.get_chat_history(sessionId)
