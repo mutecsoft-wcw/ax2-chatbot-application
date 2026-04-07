@@ -1,1 +1,1 @@
-from .chat import chat as chat_router
+from .chat import router as chat_router

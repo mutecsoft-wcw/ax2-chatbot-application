@@ -1,2 +1,3 @@
 from .public_chat_service import public_chat_service
 from .internal_chat_service import internal_chat_service
+from .redis_service import redis_service

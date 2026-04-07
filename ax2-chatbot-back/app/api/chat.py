@@ -8,7 +8,7 @@ router = APIRouter()
 
 # 대국민 ChatBot Api
 @router.post("/public/stream-chat")
-async def chat(request: LlmRequest):
+async def public_chat(request: LlmRequest):
     user_input = ""
     session_id = request.sessionId
 
@@ -30,7 +30,7 @@ async def chat(request: LlmRequest):
 
 # 업무지원 ChatBot Api
 @router.post("/internal/stream-chat")
-async def chat(request: LlmRequest):
+async def internal_chat(request: LlmRequest):
     user_input = ""
     session_id = request.sessionId
 
