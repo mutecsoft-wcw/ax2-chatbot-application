@@ -10,7 +10,7 @@ from app.utils.file_utils import load_prompt_file
 from app.providers import llm_model, tools
 
 
-class ChatService:
+class PublicChatService:
     def __init__(self):
         self.llm = llm_model
         self.tools = tools
@@ -133,4 +133,4 @@ class ChatService:
         return RedisChatMessageHistory(session_id, url=self.redis_url, ttl=self.redis_ttl)
 
 
-chat_service = ChatService()
+public_chat_service = PublicChatService()

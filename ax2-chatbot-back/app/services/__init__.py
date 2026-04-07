@@ -1,1 +1,2 @@
-from .chat_service import chat_service
+from .public_chat_service import public_chat_service
+from .internal_chat_service import internal_chat_service
