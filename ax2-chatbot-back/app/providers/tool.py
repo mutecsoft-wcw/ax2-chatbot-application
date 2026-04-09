@@ -1,13 +1,10 @@
-from langchain_core.tools import tool
+from typing import Optional, Union, List
 from pydantic import BaseModel, Field
-from .es import (
-    chs_raw_guide_retriever,
-    chs_question_guide_retriever,
-    knhanes_raw_guide_retriever,
-    nhip_health_info_retriever,
-    chs_form_retriever
-)
-from app.core  import logger
+from langchain_core.tools import tool
+
+from app.core import settings
+from .es import search_guide_documents, search_health_info
+
 
 class SearchGuideInput(BaseModel):
     query: str = Field(
@@ -20,25 +17,25 @@ class SearchGuideInput(BaseModel):
             "(e.g., User asks: 'A지침서와 B지침서의 목적' -> Call 1: query='A지침서 목적', Call 2: query='B지침서 목적')"
         )
     )
+    year: Optional[Union[int, List[int]]] = Field(
+        default=None,
+        description="사용자 질문에 특정 연도(예: 2023, 2024, 작년, 올해)가 언급된 경우 해당 연도(4자리 숫자). 언급이 없다면 null"
+    )
 
-def result_formatted(docs) -> str:
-    if not docs:
-        return "관련 가이드 문서를 찾지 못했습니다. 다른 키워드로 다시 검색해주세요."
-
-    formatted_results = []
-    for i, doc in enumerate(docs):
-        source = doc.metadata.get("source", "제목 없음")
-        content = doc.page_content
-        info = f"[문서 {i+1}] {source}\n내용: {content}"
-
-        logger.info(info)
-
-        formatted_results.append(info)
-
-    return "\n\n".join(formatted_results)
+class HealthInfoSearchInput(BaseModel):
+    query: str = Field(
+        description=(
+            "A specific single keyword or short phrase to search. "
+            "[CRITICAL RULE 1]: NEVER call this tool for simple greetings (e.g., '안녕하세요', '안녕', '반가워'), gratitude, or casual conversation. If the user is just greeting, DO NOT invoke any tools. "
+            "[CRITICAL RULE 2]: If you need to compare or simultaneously search two or more diseases or concepts, "
+            "NEVER combine them into a single query. "
+            "You MUST split the question and call this tool multiple times independently (Parallel Calling). "
+            "(e.g., User asks: '고혈압과 당뇨의 증상' -> Call 1: query='고혈압 증상', Call 2: query='당뇨 증상')"
+        )
+    )
 
 @tool("chs_raw_guide_tool", args_schema=SearchGuideInput)
-async def chs_raw_guide_tool(query: str) -> str:
+async def chs_raw_guide_tool(query: str, year: Optional[int] = None) -> str:
     """
     Search the technical contents of the 2025 Community Health Survey (CHS, 지역사회건강조사) **'Raw Data Usage Guide (원시자료 이용지침서)'**.
     You MUST use this tool when a professional guide for statistical analysis or data handling is required.
@@ -52,12 +49,14 @@ async def chs_raw_guide_tool(query: str) -> str:
     [USAGE CONDITION]: Use this tool ONLY for technical queries regarding **'통계 분석 방법' (Statistical analysis methods)** or **'데이터 변수 정의' (Data variable definitions)**.
     DO NOT use this tool for simple survey question meanings.
     """
-
-    docs = await chs_raw_guide_retriever.ainvoke(query)
-    return result_formatted(docs)
+    return await search_guide_documents(
+        index_name=settings.elasticsearch["indices"]["chs_raw_guide_index"],
+        query=query,
+        year=year
+    )
 
 @tool("chs_question_guide_tool", args_schema=SearchGuideInput)
-async def chs_question_guide_tool(query: str) -> str:
+async def chs_question_guide_tool(query: str, year: Optional[int] = None) -> str:
     """
     Search the contents of the Community Health Survey (CHS, 지역사회건강조사) **'Survey Questionnaire Guide (조사문항지침서)'**.
     You MUST use this tool when you need specific definitions of survey questions, 조사 목적 (survey purpose), 면접 지침 (interview guidelines), or 응답 분류 기준.
@@ -72,11 +71,14 @@ async def chs_question_guide_tool(query: str) -> str:
     DO NOT use this tool for statistical analysis methodologies or data structures (use `chs_raw_guide_tool` instead).
     """
 
-    docs = await chs_question_guide_retriever.ainvoke(query)
-    return result_formatted(docs)
+    return await search_guide_documents(
+        index_name=settings.elasticsearch["indices"]["chs_question_guide_index"],
+        query=query,
+        year=year
+    )
 
 @tool("chs_form_tool", args_schema=SearchGuideInput)
-async def chs_form_tool(query: str) -> str:
+async def chs_form_tool(query: str, year: Optional[int] = None) -> str:
     """
     Search the exact contents of the Community Health Survey (CHS, 지역사회건강조사) 'Survey Form / Questionnaire (조사표 / 설문지)'.
     You MUST use this tool to find the exact phrasing of survey questions, response choices (객관식 보기/선택지), and skip logic (건너뛰기/비해당 조건).
@@ -90,11 +92,14 @@ async def chs_form_tool(query: str) -> str:
     DO NOT use this tool for detailed definitions of survey terms (use `chs_question_guide_tool`) or statistical data analysis (use `chs_raw_guide_tool`).
     """
 
-    docs = await chs_form_retriever.ainvoke(query)
-    return result_formatted(docs)
+    return await search_guide_documents(
+        index_name=settings.elasticsearch["indices"]["chs_form_index"],
+        query=query,
+        year=year
+    )
 
 @tool("knhanes_raw_guide_tool", args_schema=SearchGuideInput)
-async def knhanes_raw_guide_tool(query: str) -> str:
+async def knhanes_raw_guide_tool(query: str, year: Optional[int] = None) -> str:
     """
     Search the technical contents of the Korea National Health and Nutrition Examination Survey (KNHANES, 국민건강영양조사) **'Raw Data Usage Guide (원시자료 이용지침서)'**.
     You MUST use this tool when you need a professional guide for national-level (국가 수준) health and nutrition statistical analysis.
@@ -112,10 +117,13 @@ async def knhanes_raw_guide_tool(query: str) -> str:
     DO NOT use this tool for regional-level data (use `chs_raw_guide_tool` instead).
     """
 
-    docs = await knhanes_raw_guide_retriever.ainvoke(query)
-    return result_formatted(docs)
+    return await search_guide_documents(
+        index_name=settings.elasticsearch["indices"]["knhanes_raw_guide_index"],
+        query=query,
+        year=year
+    )
 
-@tool("nhip_health_info_tool", args_schema=SearchGuideInput)
+@tool("nhip_health_info_tool", args_schema=HealthInfoSearchInput)
 async def nhip_health_info_tool(query: str) -> str:
     """
     Search for medical information from the KDCA 'National Health Information Portal (국가건강정보포털)'.
@@ -126,8 +134,10 @@ async def nhip_health_info_tool(query: str) -> str:
     [CRITICAL]: NEVER use this tool for general chat, greetings ('안녕', '안녕하세요'), or non-health related queries.
     """
 
-    docs = await nhip_health_info_retriever.ainvoke(query)
-    return result_formatted(docs)
+    return await search_health_info(
+        index_name=settings.elasticsearch["indices"]["nhip_health_info_index"],
+        query=query
+    )
 
 
 tools = [
