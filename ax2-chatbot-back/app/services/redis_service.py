@@ -38,9 +38,9 @@ class RedisService:
 
         # 2. 세션 ID는 있는데 Redis에 데이터가 없는 경우 (만료됨)
         if not all_messages:
-            new_id = self.generate_new_session_id()
-            logger.info(f"[REDIS] 세션 만료로 인한 신규 발급: {session_id} -> {new_id}")
-            return {"sessionId": new_id, "history": []}
+            # new_id = self.generate_new_session_id()
+            # logger.info(f"[REDIS] 세션 만료로 인한 신규 발급: {session_id} -> {new_id}")
+            return {"sessionId": session_id, "history": []}
 
         # 4. LangChain 메시지 객체를 프론트엔드(DeepChat) 포맷으로 변환
         formatted_history = []

@@ -6,6 +6,7 @@ def cors(app):
     origins = [
         settings.cors_url,
         "http://localhost:13000",
+        "http://localhost:14000",
     ]
 
     app.add_middleware(

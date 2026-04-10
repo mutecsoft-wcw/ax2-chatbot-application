@@ -10,7 +10,7 @@ const Header = ({ onLogoClick }) => (
     }}>
         <h1 onClick={onLogoClick}
             style={{
-                fontSize: '1.25rem', fontWeight: 'bold', margin: 0, cursor: "pointer"
+                fontSize: '1.25rem', fontWeight: 'bold', margin: 0, cursor: "pointer", color: "white"
             }}>
             AX2 CHAT BOT
         </h1>

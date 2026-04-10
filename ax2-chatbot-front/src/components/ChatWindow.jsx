@@ -1,298 +1,215 @@
-import React, { useState, useEffect, useRef } from 'react';
-
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { DeepChat } from 'deep-chat-react';
-import { responseInterceptor } from '../utils/ResponseInterceptor';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { SessionContext } from '../context/SessionContext';
+import { chatApi } from '../api/chatApi';
+import * as Styles from '../style/ChatStyles';
+import FileUploadModal from './modal/FileUploadModal';
 
-// TODO[sjh] 세션 저장 방식 논의 필요
-const generateSessionId = () => {
-    return 'sess-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
-};
-
-const ChatWindow = ({ initialMessage }) => {
+const ChatWindow = () => {
+    const { sessionId, updateSession } = useContext(SessionContext);
+    const location = useLocation();
+    const navigate = useNavigate();
     const chatRef = useRef(null);
-    const [modalVideoUrl, setModalVideoUrl] = useState(null);
-    const [modalImageUrl, setModalImageUrl] = useState(null);
-    const gokBlue = 'rgb(0, 55, 100)';
-    const [history, setHistory] = useState(() => {
-        const saved = localStorage.getItem('chatHistory');
-        return saved ? JSON.parse(saved) : [];
-    });
-    const [sessionId, setSessionId] = useState(null);
-    const fileInputRef = useRef(null);
-    const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleFileUpload = async (e) => {
-        // 이벤트 객체 확인 및 파일 추출
-        // 클릭해서 선택할 때는 e.target.files / 드래그 시에는 e.dataTransfer.files
-        const files = e.target?.files || e.dataTransfer?.files;
+    // 로딩 상태 관리
+    const [isLoaded, setIsLoaded] = useState(false);
 
-        // 파일이 없으면 즉시 종료 (undefined 체크)
-        if (!files || files.length === 0) return;
+    const initialHistory = useRef([]);
+    const initialQuery = useRef(location.state?.initialMessage || null);
+    const isProcessed = useRef(false);
+    const isInitialMount = useRef(true);
 
-        const file = files[0];
+    useEffect(() => {
+        if (isLoaded || !isInitialMount.current) return;
+        const initChat = async () => {
+            try {
+                // 서버에서 히스토리 가져오기
+                const res = await chatApi.fetchHistory(sessionId);
+                const data = res?.data || res;
+                if (data) {
+                    if (data.sessionId && data.sessionId !== sessionId) {
+                        updateSession(data.sessionId);
+                    }
+                    initialHistory.current = data.history || [];
+                }
+            } catch (err) {
+                console.error("데이터 로드 실패:", err);
+            } finally {
+                isInitialMount.current = false;
+                setIsLoaded(true);
 
-        if (chatRef.current) {
-            chatRef.current.submitUserMessage({
-                text: `[파일 첨부]\n${file.name}`,
-            });
-        }
-
-        // const formData = new FormData();
-        // formData.append('file', file);
-        // if (sessionId) {
-        //     formData.append('sessionId', sessionId);
-        // }
-
-        try {
-            // TODO[wcw] 서버에 파일 업로드 로직 axios.post(...)
-            // const response = await axios.post(`${process.env.REACT_APP_API_URL}/upload`, formData);
-            setIsFileModalOpen(false);
-        } catch (error) {
-            console.error("업로드 중 오류:", error);
-        }
-    };
-
-    const initialHistory = React.useMemo(() => {
-        const saved = localStorage.getItem('chatHistory');
-        return saved ? JSON.parse(saved) : [];
-    }, []);
-
-    const handleNewMessage = (body) => {
-        const { message, isHistory, isFinal } = body;
-
-        // 스트림 진행 중이거나 히스토리 로딩이면 무시
-        if (isHistory || isFinal === false) return;
-        if (!message || (!message.text && !message.html)) return;
-
-        const savedHistory = JSON.parse(localStorage.getItem('chatHistory') || "[]");
-        const newMessage = {
-            role: message.role,
-            text: message.text || message.html
+                if (location.state?.initialMessage) {
+                    navigate(location.pathname, { replace: true, state: {} });
+                }
+            }
         };
+        initChat();
+    }, [sessionId, isLoaded]);
 
-        const newHistory = [...savedHistory, newMessage];
-        localStorage.setItem('chatHistory', JSON.stringify(newHistory));
-    };
+    const handleFileUpload = async (file) => {
+        console.log("서버로 전송할 파일:", file.name);
 
+        // TODO[wcw] 파일 업로드 API 호출
+        // await chatApi.uploadReport(file, sessionId);
 
-    // 동영상 모달 실행을 위한 전역 함수 등록
-    useEffect(() => {
-        window.openVideoModal = (url) => setModalVideoUrl(url);
-        window.openImageModal = (url) => setModalImageUrl(url);
-    }, []);
+        setTimeout(() => {
+            if (chatRef.current) {
+                console.log("메시지 전송 시도:", file.name);
 
-    // session ID를 로드하거나 새로 생성
-    useEffect(() => {
-        let sid = localStorage.getItem('chatSessionId');
-        if (!sid) {
-            sid = generateSessionId();
-            localStorage.setItem('chatSessionId', sid);
-        }
-        setSessionId(sid);
-    }, []);
-
-    useEffect(() => {
-        if (initialMessage && chatRef.current && history.length === 0) {
-            const timeout = setTimeout(() => {
-                chatRef.current.submitUserMessage({ text: initialMessage });
-            }, 300); // 0.3초 정도 여유
-
-            return () => clearTimeout(timeout); // 클린업 함수
-        }
-    }, [initialMessage, history.length]);
-
-    // 모달 닫았을 때 새로고침 방지
-    const closeModals = (e) => {
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation(); // 부모 요소로 이벤트 전파 방지
-        }
-        setModalVideoUrl(null);
-        setModalImageUrl(null);
+                // submitUserMessage 호출
+                chatRef.current.submitUserMessage({
+                    text: `[파일 업로드 완료] ${file.name} 분석을 시작해줘.`,
+                });
+            } else {
+                console.error("파일 업로드 에러");
+            }
+        }, 300);
     };
 
     return (
-        <div style={containerStyle}>
-            <div style={uploadHeaderStyle}>
-                <span style={headerTitleStyle}>건강정보 챗봇</span>
-                <button onClick={() => setIsFileModalOpen(true)} style={uploadButtonStyle}>
+        <div style={Styles.containerStyle}>
+            <div style={Styles.uploadHeaderStyle}>
+                <span style={Styles.headerTitleStyle}>대국민 챗봇</span>
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    style={Styles.uploadButton}
+                >
                     📄 리포트 업로드
                 </button>
             </div>
-            <DeepChat
-                ref={chatRef}
-                style={chatComponentStyle}
-                messageStyles={getMessageStyles(gokBlue)}
-                inputAreaStyle={inputAreaStyle}
-                textInput={textInputStyle}
-                submitButtonStyles={submitButtonStyle(gokBlue)}
-                html={{ useHtml: true }}
-                history={initialHistory}
-                onMessage={handleNewMessage}
 
-                connect={{
-                    url: process.env.REACT_APP_API_URL,
-                    method: 'POST',
-                    stream: 'sse',
-                    additionalBodyProps: { sessionId: sessionId }
-                }}
-                responseInterceptor={responseInterceptor}
-                stream={true}
+            {isLoaded ? (
+                <DeepChat
+                    ref={chatRef}
+                    style={Styles.chatComponentStyle}
+                    history={initialHistory.current}
+                    stream={true}
+                    scrollButton="true"
+                    onComponentRender={(chatElement) => {
+                        // 딱 한 번만 실행되도록 제어
+                        if (!isProcessed.current && initialQuery.current) {
+                            isProcessed.current = true;
+                            console.log("신규 질문 전송:", initialQuery.current);
 
+                            // 렌더링이 완전히 끝난 후 전송
+                            setTimeout(() => {
+                                chatElement.submitUserMessage({ text: initialQuery.current });
+                                initialQuery.current = null; // 전송 후 비움
+                            }, 1000);
+                        }
+                    }}
+                    connect={{
+                        url: process.env.REACT_APP_PUBLIC_API_URL,
+                        method: 'POST',
+                        stream: 'sse'
+                    }}
+                    requestInterceptor={(details) => {
+                        if (!details.body) return details;
 
+                        try {
+                            // 현재 바디 파싱 (문자열일 경우만)
+                            const currentBody = typeof details.body === 'string'
+                                ? JSON.parse(details.body)
+                                : details.body;
+
+                            // 서버 모델 LlmRequest 규격
+                            const finalPayload = {
+                                messages: (currentBody.messages || []).map(msg => ({
+                                    role: msg.role || 'user',
+                                    text: msg.text || msg.content || ""
+                                })),
+                                sessionId: sessionId || "default_session"
+                            };
+                            details.body = finalPayload;
+                        } catch (e) {
+                            console.error("인터셉터 처리 중 에러:", e);
+                        }
+                        return details;
+                    }}
+                    responseInterceptor={(response) => {
+                        if (response?.sessionId) updateSession(response.sessionId);
+                        return response;
+                    }}
+                    messageStyles={{
+                        default: {
+                            shared: {
+                                bubble: {
+                                    borderRadius: '10px',
+                                    padding: '10px 14px',
+                                },
+                            },
+                            user: {
+                                bubble: {
+                                    backgroundColor: 'var(--gok-blue)',
+                                    color: 'white',
+                                },
+                            },
+                            ai: {
+                                bubble: {
+                                    backgroundColor: '#F0F2F5',
+                                    color: '#333333',
+                                },
+                            },
+                        },
+                    }}
+                    textInput={{
+                        placeholder: {
+                            text: '검색어를 입력하세요...',
+                            style: { color: '#bcbcbc' }
+                        },
+                        style: {
+                            borderRadius: '20px',
+                            border: '1px solid #e0e0e0',
+                            backgroundColor: 'white',
+                            padding: '10px',
+                        }
+                    }}
+
+                    submitButtonStyles={{
+                        position: 'outside-right',
+                        submit: {
+                            containerStyle: {
+                                backgroundColor: '#4A7DFF',
+                                borderRadius: '10px',
+                                width: '60px',
+                                height: '40px',
+                                marginLeft: '10px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                border: 'none',
+                            },
+                            svg: { content: '' },
+                            text: {
+                                content: '전송',
+                                style: {
+                                    color: 'white',
+                                    fontSize: '14px',
+                                    fontWeight: 'bold',
+                                }
+                            }
+                        },
+                        loading: {
+                            containerStyle: { backgroundColor: '#a5c0ff' },
+                            svg: { content: '' }
+                        }
+                    }}
+                />
+            ) : (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <p>대화 내용을 불러오는 중입니다...</p>
+                </div>
+            )}
+            <FileUploadModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onUpload={handleFileUpload}
             />
-
-            {/* 동영상 모달 */}
-            {modalVideoUrl && (
-                <div style={modalOverlay} onClick={() => setModalVideoUrl(null)}>
-                    <div style={modalContent} onClick={e => e.stopPropagation()}>
-                        <video src={modalVideoUrl} controls autoPlay style={{ width: '100%' }} />
-                        <button style={closeBtn} onClick={closeModals}>닫기</button>
-                    </div>
-                </div>
-            )}
-
-            {/* 이미지 모달 */}
-            {modalImageUrl && (
-                <div style={modalOverlay} onClick={closeModals}>
-                    <div style={{ ...modalContent, maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
-                        <img src={modalImageUrl} alt="미리보기" style={{ width: '100%', borderRadius: '15px' }} />
-                        <button
-                            type="button"
-                            style={closeBtn}
-                            onClick={closeModals}
-                        >
-                            닫기
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* 리포트 파일 업로드 모달 */}
-            {isFileModalOpen && (
-                <div style={modalOverlay} onClick={() => setIsFileModalOpen(false)}>
-                    <div style={uploadModalContent} onClick={e => e.stopPropagation()}>
-                        <div style={modalHeader}>
-                            <h3 style={{ margin: 0 }}>리포트 파일 업로드</h3>
-                            <span style={closeBtn} onClick={() => setIsFileModalOpen(false)}>&times;</span>
-                        </div>
-
-                        <div
-                            style={dropZoneStyle}
-                            onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = '#3b5bdb'; }}
-                            onDrop={(e) => { e.preventDefault(); handleFileUpload(e); }}
-                            onClick={() => fileInputRef.current.click()}
-                            onDragLeave={(e) => {
-                                e.currentTarget.style.borderColor = '#ccc';
-                            }}
-                        >
-                            <p>여기로 HTML 파일을 드래그하거나<br />클릭해서 선택하세요.</p>
-                            <button style={findFileBtn}>파일 찾기</button>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileUpload}
-                                style={{ display: 'none' }}
-                                accept=".html"
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
-
-// --- 스타일 변수 ---
-const uploadHeaderStyle = {
-    width: '100%',
-    maxWidth: '800px',
-    display: 'flex',
-    alignItems: 'center',
-    padding: '15px 20px',
-    borderRadius: '15px 15px 0 0',
-    borderBottom: '1px solid #eee',
-    marginBottom: '-1px',
-    zIndex: 1,
-    justifyContent: 'space-between'
-};
-
-const headerTitleStyle = {
-    fontSize: '1.1rem',
-    fontWeight: 'bold',
-    color: '#333'
-};
-
-const uploadButtonStyle = {
-    backgroundColor: 'var(--gok-blue)',
-    color: 'white',
-    border: 'none',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-    transition: 'background-color 0.2s'
-};
-
-const containerStyle = {
-    width: '100%', height: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column',
-    justifyContent: 'center', alignItems: 'center', padding: '20px', backgroundColor: '#f4f7f9'
-};
-
-const chatComponentStyle = {
-    borderRadius: '20px', width: '100%', maxWidth: '800px', height: '100%',
-    backgroundColor: '#ffffff', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-    display: 'flex', flexDirection: 'column'
-};
-
-const getMessageStyles = (gokBlue) => ({
-    default: {
-        shared: { innerContainer: { fontSize: '0.95rem', padding: '12px 16px' }, outerContainer: { margin: '10px 0' } },
-        user: { bubble: { backgroundColor: gokBlue, color: 'white', borderRadius: '18px 18px 2px 18px', marginRight: '10px' } },
-        ai: { bubble: { backgroundColor: '#f0f2f5', color: '#333', borderRadius: '18px 18px 18px 2px', marginLeft: '10px' } }
-    }
-});
-
-const inputAreaStyle = { backgroundColor: '#ffffff', borderTop: '1px solid #eee', padding: '12px 15px' };
-
-const textInputStyle = {
-    placeholder: { text: '메시지를 입력하세요...' },
-    containerStyle: { backgroundColor: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '25px', padding: '5px 15px', width: '100%', fontSize: '1rem' }
-};
-
-const submitButtonStyle = (gokBlue) => ({
-    position: "outside-end",
-    submit: {
-        container: { backgroundColor: gokBlue, borderRadius: '50%', marginLeft: '10px' },
-        svg: { color: 'white', width: '18px', height: '18px', marginRight: '2px' }
-    },
-    hover: { container: { backgroundColor: 'rgb(0, 75, 130)' } }
-});
-
-const uploadModalContent = {
-    backgroundColor: 'white', padding: '30px', borderRadius: '15px',
-    width: '450px', textAlign: 'center', position: 'relative'
-};
-
-const modalHeader = {
-    display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px'
-};
-
-const dropZoneStyle = {
-    border: '2px dashed #ccc', borderRadius: '10px', padding: '40px 20px',
-    backgroundColor: '#fff', cursor: 'pointer', transition: 'border 0.3s'
-};
-
-const findFileBtn = {
-    backgroundColor: '#4c6ef5', color: 'white', border: 'none',
-    padding: '8px 25px', borderRadius: '20px', cursor: 'pointer', marginTop: '10px'
-};
-
-const modalOverlay = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' };
-const modalContent = { position: 'relative', width: '90%', maxWidth: '800px' };
-const closeBtn = { position: 'absolute', top: '-40px', right: 0, color: 'white', background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' };
 
 export default ChatWindow;

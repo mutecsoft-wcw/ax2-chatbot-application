@@ -1,44 +1,70 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../css/Main.css';
 
-const Main = ({ onSearch }) => {
-  const [inputValue, setInputValue] = useState("");
+const Main = ({ onSearch, isLoading }) => {
+    const [inputValue, setInputValue] = useState("");
+    const navigate = useNavigate();
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      onSearch(inputValue);
-    }
-  };
+    const handleSearchClick = (text) => {
+        if (!text.trim() || isLoading) return;
 
-  return (
-    <div className="main-container">
-      <div className="search-section">
-        <h1 className="main-title">
-          궁금하신 건강정보가<br />있으신가요?
-        </h1>
-        
-        <div className="search-box">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="궁금하신 건강 관련 검색어를 입력하세요."
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-          <button className="search-icon-btn" onClick={() => onSearch(inputValue)}>
-            🔍
-          </button>
+        if (onSearch) onSearch(text);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+            handleSearchClick(inputValue);
+        }
+    };
+
+    return (
+        <div className="main-container">
+            <div className="search-section">
+                <h1 className="main-title">
+                    {process.env.REACT_APP_PORT === "14000"
+                        ? "조사 업무 지원을 위한\n데이터 분석"
+                        : "궁금하신 건강정보가\n있으신가요?"}
+                </h1>
+
+                <div className="search-box">
+                    <input
+                        type="text"
+                        className="search-input"
+                        placeholder={isLoading ? "세션 연결 중..." : "검색어를 입력하세요."}
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        disabled={isLoading} // 세션 발급 전 입력 방지
+                        enterKeyHint="search"
+                    />
+                    <button
+                        className="search-icon-btn"
+                        onClick={() => handleSearchClick(inputValue)}
+                        disabled={isLoading || !inputValue.trim()}
+                    >
+                        🔍
+                    </button>
+                </div>
+
+                <div className="hash-tags">
+                    {["고혈압 원인", "우울증 예방", "당뇨병 식단"].map(tag => (
+                        <span
+                            key={tag}
+                            className="tag"
+                            onClick={() => handleSearchClick(tag)}
+                            style={{
+                                cursor: isLoading ? 'wait' : 'pointer',
+                                opacity: isLoading ? 0.6 : 1
+                            }}
+                        >
+                            #{tag}
+                        </span>
+                    ))}
+                </div>
+            </div>
         </div>
-
-        <div className="hash-tags">
-          <span onClick={() => onSearch("고혈압 원인")}>#고혈압 원인</span>
-          <span onClick={() => onSearch("우울증 원인")}>#우울증 원인</span>
-          <span onClick={() => onSearch("당뇨병 증상")}>#당뇨병 증상</span>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Main;
