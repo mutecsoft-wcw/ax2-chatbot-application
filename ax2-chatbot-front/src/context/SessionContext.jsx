@@ -11,7 +11,7 @@ export const SessionProvider = ({ children }) => {
     // 서버 응답에 맞춰 세션을 갱신하는 단일 통로
     const updateSession = useCallback((newId) => {
         if (newId && newId !== sessionId) {
-            console.log("💾 세션 ID 갱신:", newId);
+            console.log("세션 ID 갱신:", newId);
             localStorage.setItem('chatSessionId', newId);
             setSessionId(newId);
         }

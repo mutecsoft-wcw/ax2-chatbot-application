@@ -1,5 +1,5 @@
-import uuid
-from typing import List, Dict, Any
+import uuid, re
+from typing import Dict, Any
 from langchain_community.chat_message_histories import RedisChatMessageHistory
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 
@@ -59,16 +59,39 @@ class RedisService:
         }
 
     # 최근 대화 내역 조회 (챗봇 전용)
-    def get_recent_messages(self, session_id: str) -> list[BaseMessage]:
+    def get_recent_messages(self, session_id: str, only_human: bool = False, clean_ai_format: bool = True) -> list[BaseMessage]:
         history = self._get_history_obj(session_id)
         all_past_messages = history.messages
 
         if not all_past_messages:
             return []
 
+        # 1. 설정한 limit만큼 최신 메시지 슬라이싱
         past_messages = all_past_messages[-self.redis_message_limit:]
-        logger.info(f"[CONTEXT] 히스토리 총 {len(all_past_messages)}개 중 최신 {len(past_messages)}개 로드")
-        return past_messages
+
+        # 2. [옵션 A] 도구 판별 LLM을 위한 필터링 (사용자 질문만 추출)
+        if only_human:
+            filtered_messages = [msg for msg in past_messages if isinstance(msg, HumanMessage)]
+            logger.info(f"[CONTEXT] 도구 판별용 히스토리 로드: {len(filtered_messages)}개의 HumanMessage만 추출")
+            return filtered_messages
+
+        # 3. [옵션 B] 최종 답변 LLM을 위한 AI 응답 정제 (마크다운 포맷 껍데기 벗기기)
+        processed_messages = []
+        for msg in past_messages:
+            if isinstance(msg, AIMessage) and clean_ai_format:
+                # [참고 자료] 섹션 통째로 날리기 (LLM이 참고자료를 지어내는 할루시네이션 방지)
+                clean_content = msg.content.split('[참고 자료]')[0]
+
+                # 마크다운 헤딩(##, ###) 등 흉내내기 좋은 기호 지우기
+                clean_content = re.sub(r'#{1,3}\s', '', clean_content)
+
+                # 새로운 형태의 AIMessage 객체로 복사하여 추가 (원본 Redis 데이터는 훼손 안 됨)
+                processed_messages.append(AIMessage(content=clean_content.strip()))
+            else:
+                processed_messages.append(msg)
+
+        logger.info(f"[CONTEXT] 최종 답변용 히스토리 로드: 총 {len(all_past_messages)}개 중 최신 {len(processed_messages)}개 로드 (포맷 정제 완료)")
+        return processed_messages
 
     # 대화 기록 저장
     def save_messages(self, session_id: str, user_prompt: str, ai_response: str):
