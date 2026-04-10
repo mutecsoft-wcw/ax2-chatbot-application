@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import * as Styles from '../../style/ChatStyles';
+import '../../css/FileUploadModal.css';
+
 
 const FileUploadModal = ({ isOpen, onClose, onUpload }) => {
     const fileInputRef = useRef(null);
@@ -49,14 +50,14 @@ const FileUploadModal = ({ isOpen, onClose, onUpload }) => {
     };
 
     return (
-        <div style={Styles.modalOverlay} onClick={onClose}>
-            <div style={Styles.uploadModalContent} onClick={e => e.stopPropagation()}>
-                <div style={Styles.uploadModalHeader}>
-                    <h3 style={{ margin: 0, fontSize: '18px' }}>리포트 파일 업로드</h3>
-                    <span style={Styles.uploadModalCloseBtn} onClick={onClose}>&times;</span>
+        <div className='modal-overlay' onClick={onClose}>
+            <div className='upload-modal-content' onClick={e => e.stopPropagation()}>
+                <div className='upload-modal-header'>
+                    <h3 className='upload-modal-title'>리포트 파일 업로드</h3>
+                    <span className='upload-modal-close-btn' onClick={onClose}>&times;</span>
                 </div>
                 <div
-                    style={Styles.dropZoneStyle}
+                    className='drop-zone'
                     onDragOver={(e) => {
                         e.preventDefault();
                         e.currentTarget.style.borderColor = '#4c6ef5';
@@ -76,7 +77,7 @@ const FileUploadModal = ({ isOpen, onClose, onUpload }) => {
                         여기로 HTML 파일을 드래그하거나<br />
                         <strong>클릭해서 선택하세요.</strong>
                     </p>
-                    <button style={Styles.findFileBtn}>파일 찾기</button>
+                    <button className='find-file-btn'>파일 찾기</button>
                     <input
                         type="file"
                         ref={fileInputRef}

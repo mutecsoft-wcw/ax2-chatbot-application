@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { SessionContext } from '../context/SessionContext';
 import { chatApi } from '../api/chatApi';
 import * as Styles from '../style/ChatStyles';
-import FileUploadModal from './modal/FileUploadModal';
 import '../css/ChatWindow.css';
 import { responseInterceptor } from '../utils/ResponseInterceptor';
 
@@ -13,7 +12,6 @@ const ChatWindow = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const chatRef = useRef(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // 로딩 상태 관리
     const [isLoaded, setIsLoaded] = useState(false);
@@ -50,35 +48,10 @@ const ChatWindow = () => {
         initChat();
     }, [sessionId, updateSession, navigate, location.pathname, location.state?.initialMessage, isLoaded]);
 
-    const handleFileUpload = async (file) => {
-        console.log("서버로 전송할 파일:", file.name);
-
-        // TODO[wcw] 파일 업로드 API 호출
-        // await chatApi.uploadReport(file, sessionId);
-
-        setTimeout(() => {
-            if (chatRef.current) {
-                console.log("메시지 전송 시도:", file.name);
-
-                chatRef.current.submitUserMessage({
-                    text: `[파일 업로드 완료]\n ${file.name} 분석을 시작해줘.`,
-                });
-            } else {
-                console.error("파일 업로드 에러");
-            }
-        }, 300);
-    };
-
     return (
         <div className="container">
             <div className="header">
-                <span className="header-title">대국민 챗봇</span>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="report-upload-button"
-                >
-                    리포트 업로드
-                </button>
+                <span className="header-title">조사 지원 챗봇</span>
             </div>
 
             {isLoaded ? (
@@ -102,7 +75,7 @@ const ChatWindow = () => {
                         }
                     }}
                     connect={{
-                        url: process.env.REACT_APP_PUBLIC_API_URL,
+                        url: process.env.REACT_APP_INTERNAL_API_URL,
                         method: 'POST',
                         stream: 'sse'
                     }}
@@ -142,11 +115,6 @@ const ChatWindow = () => {
                     <p>대화 내용을 불러오는 중입니다...</p>
                 </div>
             )}
-            <FileUploadModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onUpload={handleFileUpload}
-            />
         </div>
     );
 };
