@@ -146,7 +146,6 @@ class InternalChatService:
                 processed_messages.append(msg)
 
         logger.info(f"[CONTEXT] 최종 답변용 히스토리 정제 완료 ({len(processed_messages)}개)")
-        logger.info(processed_messages + [HumanMessage(content=user_prompt)] + tool_results)
         return processed_messages + [HumanMessage(content=user_prompt)] + tool_results
 
     async def _stream_final_response(self, messages: list[BaseMessage]):
