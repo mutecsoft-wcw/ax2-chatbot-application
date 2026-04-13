@@ -8,24 +8,25 @@ import FileUploadModal from './modal/FileUploadModal';
 import '../css/ChatWindow.css';
 import { responseInterceptor } from '../utils/ResponseInterceptor';
 
-const ChatWindow = () => { 
+const ChatWindow = () => {
     const { sessionId, updateSession } = useContext(SessionContext);
     const location = useLocation();
     const navigate = useNavigate();
     const chatRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    // 로딩 상태 관리
     const [isLoaded, setIsLoaded] = useState(false);
+
+    const isFetching = useRef(false);
+    const hasFetched = useRef(false);
 
     const initialHistory = useRef([]);
     const initialQuery = useRef(location.state?.initialMessage || null);
     const isProcessed = useRef(false);
-    const isInitialMount = useRef(true);
 
     useEffect(() => {
-        if (isLoaded || !isInitialMount.current) return;
+        if (hasFetched.current || isFetching.current) return;
         const initChat = async () => {
+            isFetching.current = true;
             try {
                 // 서버에서 히스토리 가져오기
                 const res = await chatApi.fetchHistory(sessionId);
@@ -36,10 +37,11 @@ const ChatWindow = () => {
                     }
                     initialHistory.current = data.history || [];
                 }
+                hasFetched.current = true;
             } catch (err) {
                 console.error("데이터 로드 실패:", err);
             } finally {
-                isInitialMount.current = false;
+                isFetching.current = false;
                 setIsLoaded(true);
 
                 if (location.state?.initialMessage) {
@@ -50,15 +52,22 @@ const ChatWindow = () => {
         initChat();
     }, [sessionId, updateSession, navigate, location.pathname, location.state?.initialMessage, isLoaded]);
 
+    useEffect(() => {
+        // HTML 내부 버튼 클릭 시 Deep Chat에 메시지를 전송하는 전역 함수
+        window.submitChatResponse = (text) => {
+            if (chatRef.current) {
+                chatRef.current.submitUserMessage({ text });
+            }
+        };
+    }, []);
+
     const handleFileUpload = async (file) => {
-        console.log("서버로 전송할 파일:", file.name);
 
         // TODO[wcw] 파일 업로드 API 호출
         // await chatApi.uploadReport(file, sessionId);
 
         setTimeout(() => {
             if (chatRef.current) {
-                console.log("메시지 전송 시도:", file.name);
 
                 chatRef.current.submitUserMessage({
                     text: `[파일 업로드 완료]\n ${file.name} 분석을 시작해줘.`,
@@ -92,7 +101,6 @@ const ChatWindow = () => {
                         // 딱 한 번만 실행되도록 제어
                         if (!isProcessed.current && initialQuery.current) {
                             isProcessed.current = true;
-                            console.log("신규 질문 전송:", initialQuery.current);
 
                             // 렌더링이 완전히 끝난 후 전송
                             setTimeout(() => {
