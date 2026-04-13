@@ -52,15 +52,6 @@ const ChatWindow = () => {
         initChat();
     }, [sessionId, updateSession, navigate, location.pathname, location.state?.initialMessage, isLoaded]);
 
-    useEffect(() => {
-        // HTML 내부 버튼 클릭 시 Deep Chat에 메시지를 전송하는 전역 함수
-        window.submitChatResponse = (text) => {
-            if (chatRef.current) {
-                chatRef.current.submitUserMessage({ text });
-            }
-        };
-    }, []);
-
     const handleFileUpload = async (file) => {
 
         // TODO[wcw] 파일 업로드 API 호출

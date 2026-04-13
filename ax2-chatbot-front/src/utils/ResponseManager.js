@@ -61,6 +61,66 @@ export const ResponseManager = {
       return { text: safeText, html: fileHtml };
     }
 
+    // 간단 설문
+    // TODO[wcw]  window.submitChatResponse(results); -> 설문 응답 데이터 전송 api로 변경
+    if (type === "survey_form" && data?.questions) {
+      const questionHtml = data.questions
+        .map(
+          (q) => `
+            <div style="margin-bottom: 12px; text-align: left;">
+              <label style="font-size: 12px; display: block; color: #666; margin-bottom: 4px;">${
+                q.label
+              }</label>
+              <select id="${
+                q.id
+              }" class="survey-select" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px;">
+                ${q.options
+                  .map((opt) => `<option value="${opt}">${opt}</option>`)
+                  .join("")}
+              </select>
+            </div>`
+        )
+        .join("");
+
+      return {
+        html: `
+            <div class="dynamic-survey-card" style="background: #fff; padding: 15px; border-radius: 15px; border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 220px;">
+              <p style="font-weight: bold; margin-bottom: 15px; font-size: 15px;">${safeText}</p>
+              ${questionHtml}
+              <button onclick="
+                const results = Array.from(document.querySelectorAll('.survey-select'))
+                                     .map(s => s.value);
+                window.submitChatResponse(results);
+              " style="width: 100%; background: #003764; color: white; border: none; padding: 10px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-top: 5px;">
+                설문 완료
+              </button>
+            </div>`,
+        role: "ai",
+      };
+    }
+
+    // TODO[wcw]  window.submitChatResponse(results); -> 설문 응답 데이터 전송 api로 변경
+    if (type === "survey_initial_question") {
+      const buttonsHtml = data.buttons
+        .map(
+          (btn) => `
+          <button onclick="window.submitChatResponse('${btn.value}')" 
+                  style="background: ${"var(--gok-blue)"}; 
+                         color: ${"white"}; 
+                         border: none; padding: 5px 15px; border-radius: 15px; cursor: pointer;">
+            ${btn.label}
+          </button>
+        `
+        )
+        .join("");
+
+      return {
+        text: safeText,
+        html: `<div style="display: flex; gap: 8px; margin-top: 10px;">${buttonsHtml}</div>`,
+        role: "ai",
+      };
+    }
+
     return { text: safeText };
   },
 };

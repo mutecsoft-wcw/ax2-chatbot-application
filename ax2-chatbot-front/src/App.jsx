@@ -3,6 +3,7 @@ import { SessionProvider } from './context/SessionContext';
 import Header from './route/Header';
 import Main from './route/Main';
 import ChatWindow from './components/ChatWindow';
+import Test from './components/Test';
 
 function AppContent() {
     const navigate = useNavigate();
@@ -19,6 +20,7 @@ function AppContent() {
                 <Routes>
                     <Route path="/" element={<Main onSearch={handleSearch} />} />
                     <Route path="/chat" element={<ChatWindow />} />
+                    <Route path="/test" element={<Test />} />
                 </Routes>
             </main>
         </div>
