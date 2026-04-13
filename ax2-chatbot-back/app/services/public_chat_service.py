@@ -20,9 +20,13 @@ class PublicChatService:
 
     async def stream_chat(self, user_prompt: str, session_id: str):
         try:
-            # 1. 이전 대화내역 로드 및 메시지 초기화
             logger.info(f"[STEP 1] 대화 요청 수신: {user_prompt[:50]}...")
-            current_messages = self._load_context_messages(session_id, user_prompt)
+            
+            # 0. 이전 대화내역 로드
+            past_messages = await redis_service.get_recent_messages(session_id)
+
+            # 1. 도구 판별용 메시지 초기화
+            current_messages = self._load_context_messages(user_prompt, past_messages)
 
             # 2. 도구 호출 여부 판단 및 실행
             logger.info(f"[STEP 2] LLM 도구 호출 여부 판단")
@@ -34,7 +38,7 @@ class PublicChatService:
 
             # 4. 최종 답변 생성 및 스트리밍
             logger.info(f"[STEP 4] 최종 답변 스트리밍 시작")
-            messages_for_final = self._build_final_messages(session_id, user_prompt, tool_results)
+            messages_for_final = self._build_final_messages(user_prompt, tool_results, past_messages)
 
             full_ai_response = ""
             async for text_chunk in self._stream_final_response(messages_for_final):
@@ -42,8 +46,11 @@ class PublicChatService:
                 yield f"data: {ChatResponse(text=text_chunk).model_dump_json()}\n\n"
 
             # 5. 최종 대화 내역 저장
-            redis_service.save_messages(session_id, user_prompt, full_ai_response)
-            logger.info(f"[STEP 5] 대화 기록 저장 완료 및 스트리밍 종료")
+            try:
+                await redis_service.save_messages(session_id, user_prompt, full_ai_response)
+                logger.info(f"[STEP 5] 대화 기록 저장 완료 및 스트리밍 종료")
+            except Exception as redis_error:
+                logger.error(f"[REDIS ERROR] 대화 기록 저장 실패: {str(redis_error)}")
 
         except Exception as e:
             logger.error(f"[CRITICAL ERROR] {str(e)}", exc_info=True)
@@ -52,16 +59,17 @@ class PublicChatService:
 
     # --- [STEP 1] ---
     @staticmethod
-    def _load_context_messages(session_id: str, user_prompt: str) -> list[BaseMessage]:
+    def _load_context_messages(user_prompt: str, past_messages: list[BaseMessage]) -> list[BaseMessage]:
         # 1. 사용자 질문만 추출 (AI 답변 제외)
-        past_messages = redis_service.get_recent_messages(session_id, only_human=True)
+        human_messages = [msg for msg in past_messages if isinstance(msg, HumanMessage)]
+        logger.info(f"[CONTEXT] 도구 판별용 히스토리: {len(human_messages)}개의 HumanMessage 추출")
 
         # 2. 과거 질문이 없다면 현재 질문만 반환
-        if not past_messages:
+        if not human_messages:
             return [HumanMessage(content=user_prompt)]
 
         # 3. 과거 질문이 있다면 텍스트 하나로 병합
-        past_context_text = "\n".join([f"- {msg.content}" for msg in past_messages])
+        past_context_text = "\n".join([f"- {msg.content}" for msg in human_messages])
 
         # 4. 구조화된 단일 프롬프트 생성
         merged_prompt = (
@@ -124,13 +132,21 @@ class PublicChatService:
 
     # --- [STEP 4] ---
     @staticmethod
-    def _build_final_messages(session_id: str, user_prompt: str, tool_results: list) -> list[BaseMessage]:
-        final_context = redis_service.get_recent_messages(
-            session_id,
-            only_human=False,
-            clean_ai_format=False
-        )
-        return final_context + [HumanMessage(content=user_prompt)] + tool_results
+    def _build_final_messages(user_prompt: str, tool_results: list, past_messages: list[BaseMessage]) -> list[BaseMessage]:
+        processed_messages = []
+        for msg in past_messages:
+            if isinstance(msg, AIMessage):
+                # [참고 자료] 섹션 통째로 날리기 (LLM이 참고자료를 지어내는 할루시네이션 방지)
+                clean_content = msg.content.split('[참고 자료]')[0]
+
+                # 새로운 형태의 AIMessage 객체로 복사하여 추가
+                processed_messages.append(AIMessage(content=clean_content.strip()))
+            else:
+                processed_messages.append(msg)
+
+        logger.info(f"[CONTEXT] 최종 답변용 히스토리 정제 완료 ({len(processed_messages)}개)")
+        logger.info(processed_messages + [HumanMessage(content=user_prompt)] + tool_results)
+        return processed_messages + [HumanMessage(content=user_prompt)] + tool_results
 
     async def _stream_final_response(self, messages: list[BaseMessage]):
         system_message = SystemMessage(content=self.final_response_prompt)

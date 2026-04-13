@@ -55,4 +55,4 @@ async def internal_chat(request: LlmRequest):
 async def chat_history(sessionId: str = Query(None, description="조회할 세션 ID")):
     # RequestParam형식으로 요청을 보내야함
     # ex) /history?sessionId=session_id
-    return redis_service.get_chat_history(sessionId)
+    return await redis_service.get_chat_history(sessionId)
