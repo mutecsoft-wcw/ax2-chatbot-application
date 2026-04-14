@@ -11,7 +11,7 @@ export const chatComponentStyle = {
 
 export const textInputStyle = {
   placeholder: {
-    text: "건강 관련 궁금한 내용을 입력하세요...",
+    text: "건강 관련 궁금한 내용을 입력하세요.",
   },
   styles: {
     container: {
@@ -21,7 +21,7 @@ export const textInputStyle = {
       justifyContent: "center",
       display: "flex",
       padding: "5px 15px",
-      width: "70%",
+      width: "77%",
       fontSize: "16px", // 모바일 자동 줌 방지 (최소 16px)
     },
   },
