@@ -1,86 +1,134 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { DeepChat } from 'deep-chat-react';
 import { ResponseManager } from '../utils/ResponseManager';
+import * as Styles from '../style/ChatStyles';
+import '../css/ChatWindow.css';
+import { chatApi } from '../api/chatApi';
+import { SessionContext } from '../context/SessionContext';
+
 
 const Test = () => {
     const chatRef = useRef(null);
-    const isInitRender = useRef(true);
+    const { sessionId } = useContext(SessionContext);
+    window.sessionId = sessionId;
+
 
     useEffect(() => {
-        window.submitChatResponse = (message) => {
-            if (chatRef.current) {
-                // 사용자가 버튼을 눌렀을 때 해당 텍스트를 채팅창에 전송
-                chatRef.current.submitUserMessage({text: message});
-            } else {
-                console.error("DeepChat ref가 아직 연결되지 않았습니다.");
+        window.MockSurveyData = {
+            type: "survey_form",
+            text: "간단 설문",
+            data: {
+                questions: [
+                    { id: "q1", label: "운동 빈도", options: ["주 0회", "주 1-2회", "주 3회 이상"] },
+                    { id: "q2", label: "수면 시간", options: ["5시간 이하", "6-7시간", "8시간 이상"] },
+                    { id: "q3", label: "식습관", options: ["규칙적", "불규칙적"] }
+                ]
             }
         };
 
-        // 초기 메시지를 가져오는 비동기 함수
-        const fetchInitMessage = async () => {
-            if (!isInitRender.current) return;
-            isInitRender.current = false;
+        window.submitChatResponse = (message) => {
+            if (chatRef.current) chatRef.current.submitUserMessage({ text: message });
+        };
 
-            // TODO[wcw] 초기 메시지 API 호출
-            // 실제 환경에서는: const response = await fetch('url');
-            // 초기 메시지 데이터
-            const mockInitialMessage = {
+        window.submitSurvey = async (buttonElement) => {
+            const surveyContainer = buttonElement.closest('.dynamic-survey-card');
+
+            if (!surveyContainer) {
+                console.error("설문을 찾을 수 없습니다. HTML 구조를 확인하세요.");
+                return;
+            }
+
+            const questions = window.MockSurveyData?.data?.questions || [];
+
+            const surveyResults = questions.map(q => {
+                const selectElement = surveyContainer.querySelector(`#${q.id}`);
+                return {
+                    id: q.id,
+                    label: q.label,
+                    value: selectElement ? selectElement.value : "미응답"
+                };
+            });
+
+            console.log("전송할 데이터 SessionId: ", window.sessionId);
+            console.log("전송할 데이터 SurveyResults: ", surveyResults);
+
+            try {
+                await chatApi.postSurveyData(surveyResults, window.sessionId);
+                if (chatRef.current) {
+                    chatRef.current.addMessage({ text: "설문이 완료되었습니다!", role: "ai" });
+                }
+            } catch (error) {
+                alert("전송 실패");
+            }
+        };
+
+        if (chatRef.current) {
+            chatRef.current.demo = {
+                displayLoading: true,
+                response: (messageObj) => {
+                    const userText = typeof messageObj === 'string' ? messageObj : (messageObj.text || "");
+
+                    if (userText.includes("리포트") || userText.includes("만들어줘")) {
+                        return { text: "네, 원본 리포트를 업로드 해주세요." };
+                    }
+
+                    if (userText.trim() === "예") {
+                        return ResponseManager.processResponse(window.MockSurveyData);
+                    }
+                    return { text: "도움이 필요하시면 말씀해주세요." };
+                }
+            };
+        }
+
+        // 클린업 시 전역 변수 삭제
+        return () => {
+            delete window.submitSurvey;
+            delete window.submitChatResponse;
+            delete window.MockSurveyData;
+        };
+    }, [sessionId]);
+
+    // 파일 업로드 시 호출될 함수
+    const handleFileUpload = (file) => {
+        if (chatRef.current) {
+            // 파일 업로드 완료 알림
+            chatRef.current.addMessage({
+                text: `[파일 업로드 완료]\n${file.name} 분석을 시작하기 위해 몇 가지 질문을 드려도 될까요?`,
+                role: "ai"
+            });
+
+            // '예/아니오' 버튼 메시지 추가 (의사 확인)
+            const MockAskSurvey = ResponseManager.processResponse({
                 type: "survey_initial_question",
-                text: "건강과 관련한 간단한 설문을 기반으로 맞춤 리포트를 받아보시겠습니까?",
+                text: "맞춤 리포트를 위해 간단한 설문에 참여하시겠습니까?",
                 data: {
                     buttons: [
                         { label: "예", value: "예" },
                         { label: "아니오", value: "아니오" }
                     ]
                 }
-            };
-
-            if (chatRef.current) {
-                const processed = ResponseManager.processResponse(mockInitialMessage);
-                chatRef.current.addMessage(processed);
-            }
-        };
-
-        if (chatRef.current) {
-            // 초기 메시지 호출
-            setTimeout(fetchInitMessage, 500);
-
-            // Demo 모드 설정 (사용자 응답 시뮬레이션)
-            chatRef.current.demo = {
-                displayLoading: true,
-                response: (messageObj) => {
-                    const userText = typeof messageObj === 'string' ? messageObj : (messageObj.text || "");
-
-                    if (userText.trim() === "예") {
-                        const MockSurveyData = {
-                            type: "survey_form",
-                            text: "간단 설문", // 설문지 상단 메시지
-                            data: {
-                                questions: [
-                                    { id: "q1", label: "운동 빈도", options: ["주 0회", "주 1-2회", "주 3회 이상"] },
-                                    { id: "q2", label: "수면 시간", options: ["5시간 이하", "6-7시간", "8시간 이상"] },
-                                    { id: "q3", label: "식습관", options: ["규칙적", "불규칙적"] }
-                                ]
-                            }
-                        };
-                        return ResponseManager.processResponse(MockSurveyData);
-                    }
-                    return { text: "알겠습니다. 도움이 필요하시면 언제든 말씀해주세요." };
-                }
-            };
-
-            chatRef.current.messageStyles = {
-                html: { shared: { bubble: { backgroundColor: 'unset', padding: '0px', width: 'auto' } } }
-            };
+            });
+            chatRef.current.addMessage(MockAskSurvey);
         }
-    }, []);
+    };
 
     return (
-        <div style={{ padding: '20px', display: 'flex', justifyContent: 'center' }}>
+        <div className='container'>
+            <div className='header'>
+                <span className="header-title">테스트 챗봇</span>
+                <button
+                    onClick={() => handleFileUpload({ name: 'test.html' })}
+                    className='report-upload-button'
+                >
+                    (테스트용) 리포트 업로드
+                </button>
+            </div>
+
             <DeepChat
                 ref={chatRef}
-                style={{ height: '600px', width: '100%', maxWidth: '450px', borderRadius: '15px' }}
-                textInput={{ disabled: true, placeholder: { text: '설문을 완료해주세요' } }}
+                style={Styles.chatComponentStyle}
+                textInput={Styles.textInputStyle}
+                submitButtonStyles={Styles.submitButtonStyle}
             />
         </div>
     );

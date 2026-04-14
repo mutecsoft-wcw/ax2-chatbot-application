@@ -87,13 +87,10 @@ export const ResponseManager = {
             <div class="dynamic-survey-card" style="background: #fff; padding: 15px; border-radius: 15px; border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 220px;">
               <p style="font-weight: bold; margin-bottom: 15px; font-size: 15px;">${safeText}</p>
               ${questionHtml}
-              <button onclick="
-                const results = Array.from(document.querySelectorAll('.survey-select'))
-                                     .map(s => s.value);
-                window.submitChatResponse(results);
-              " style="width: 100%; background: #003764; color: white; border: none; padding: 10px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-top: 5px;">
-                설문 완료
-              </button>
+              <button onclick="window.submitSurvey(this)" 
+                        style="width: 100%; background: #003764; color: white; border: none; padding: 10px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-top: 5px;">
+                    설문 완료
+                </button>
             </div>`,
         role: "ai",
       };

@@ -93,7 +93,7 @@ const ChatWindow = () => {
                                     role: msg.role || 'user',
                                     text: msg.text || msg.content || ""
                                 })),
-                                sessionId: sessionId || "default_session"
+                                sessionId: sessionId || ""
                             };
                             details.body = finalPayload;
                         } catch (e) {

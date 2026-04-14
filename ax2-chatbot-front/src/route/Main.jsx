@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../css/Main.css';
+import { FaSearch } from "react-icons/fa";
 
 const Main = ({ onSearch, isLoading }) => {
     const [inputValue, setInputValue] = useState("");
@@ -39,7 +40,7 @@ const Main = ({ onSearch, isLoading }) => {
                         onClick={() => handleSearchClick(inputValue)}
                         disabled={isLoading || !inputValue.trim()}
                     >
-                        🔍
+                        <FaSearch />
                     </button>
                 </div>
 

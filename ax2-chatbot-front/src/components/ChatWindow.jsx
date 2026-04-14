@@ -25,12 +25,14 @@ const ChatWindow = () => {
 
     useEffect(() => {
         if (hasFetched.current || isFetching.current) return;
+
         const initChat = async () => {
             isFetching.current = true;
             try {
                 // 서버에서 히스토리 가져오기
                 const res = await chatApi.fetchHistory(sessionId);
                 const data = res?.data || res;
+
                 if (data) {
                     if (data.sessionId && data.sessionId !== sessionId) {
                         updateSession(data.sessionId);
@@ -55,11 +57,10 @@ const ChatWindow = () => {
     const handleFileUpload = async (file) => {
 
         // TODO[wcw] 파일 업로드 API 호출
-        // await chatApi.uploadReport(file, sessionId);
+        // await chatApi.uploadReport(file);
 
         setTimeout(() => {
             if (chatRef.current) {
-
                 chatRef.current.submitUserMessage({
                     text: `[파일 업로드 완료]\n ${file.name} 분석을 시작해줘.`,
                 });
@@ -119,7 +120,7 @@ const ChatWindow = () => {
                                     role: msg.role || 'user',
                                     text: msg.text || msg.content || ""
                                 })),
-                                sessionId: sessionId || "default_session"
+                                sessionId: sessionId || ""
                             };
                             details.body = finalPayload;
                         } catch (e) {
