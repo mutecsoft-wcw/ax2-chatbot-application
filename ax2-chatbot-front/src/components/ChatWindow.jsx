@@ -7,6 +7,7 @@ import * as Styles from '../style/ChatStyles';
 import FileUploadModal from './modal/FileUploadModal';
 import '../css/ChatWindow.css';
 import { responseInterceptor } from '../utils/ResponseInterceptor';
+import { FaFileUpload } from "react-icons/fa";
 
 const ChatWindow = () => {
     const { sessionId, updateSession } = useContext(SessionContext);
@@ -78,7 +79,7 @@ const ChatWindow = () => {
                     onClick={() => setIsModalOpen(true)}
                     className="report-upload-button"
                 >
-                    리포트 업로드
+                    <FaFileUpload />리포트 업로드
                 </button>
             </div>
 
@@ -135,7 +136,7 @@ const ChatWindow = () => {
                     messageStyles={Styles.messageStyle}
                     textInput={Styles.textInputStyle}
 
-                    submitButtonStyles={Styles.submitButtonStyle}
+                    submitButtonStyles={Styles.submitButtonStyles}
                 />
             ) : (
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>

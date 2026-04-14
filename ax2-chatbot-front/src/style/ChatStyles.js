@@ -11,20 +11,21 @@ export const chatComponentStyle = {
 
 export const textInputStyle = {
   placeholder: {
-    text: "검색어를 입력하세요...",
+    text: "건강 관련 궁금한 내용을 입력하세요...",
   },
-  containerStyle: {
-    backgroundColor: "#f8f9fa",
-    border: "1px solid #e9ecef",
-    borderRadius: "25px",
-    alignItems: "center",
-    justifyContent: "center",
-    display: "flex",
-    padding: "5px 15px",
-    width: "100%",
-    fontSize: "16px", // 모바일 자동 줌 방지 (최소 16px)
+  styles: {
+    container: {
+      border: "1px solid lightgray",
+      borderRadius: "10px",
+      alignItems: "center",
+      justifyContent: "center",
+      display: "flex",
+      padding: "5px 15px",
+      width: "70%",
+      fontSize: "16px", // 모바일 자동 줌 방지 (최소 16px)
+    },
   },
-//   disabled: isProcessing,
+  //   disabled: isProcessing,
 };
 
 export const messageStyle = {
@@ -54,52 +55,30 @@ export const messageStyle = {
   },
 };
 
-export const submitButtonStyle = {
-    position: "outside-end", 
-    submit: {
-      containerStyle: {
-        default: {
-          backgroundColor: gokBlue,
-          borderRadius: "10px",
-          width: "60px",
-          height: "36px",
-          marginRight: "6px",
-          marginBottom: "6px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          cursor: "pointer",
-          border: "none",
-        },
-        hover: { backgroundColor: "#1e5cbd" },
-        click: { backgroundColor: "#154796" }
+export const submitButtonStyles = {
+  position: "outside-end",
+  submit: {
+    container: {
+      default: {
+        backgroundColor: gokBlue,
+        borderRadius: "8px",
+        margin: "0 0 2px 12px",
+        padding: "11px",
       },
-      svg: { content: "" }, // 아이콘 대신 텍스트 사용
-      text: {
-        content: "전송",
-        style: {
-          default: {
-            color: "white",
-            fontSize: "14px",
-            fontWeight: "bold",
-          }
-        }
-      }
     },
-    loading: {
-      containerStyle: {
-        default: { backgroundColor: "#a5c0ff", borderRadius: "10px" }
-      },
-      svg: { content: "" },
-      text: { content: "대기", style: { default: { color: "white" } } },
+    text: {
+      content: "전송",
+      styles: { default: { color: "white" } },
     },
-    stop: {
-      containerStyle: {
-        default: { backgroundColor: "#FF4D4F", borderRadius: "10px" }
-      },
-      svg: { content: "" },
-      text: { content: "중지", style: { default: { color: "white" } } },
-    },
-    alwaysEnabled: true
-  };
-
+    svg: { content: "" },
+  },
+  loading: {
+    text: { content: "대기", styles: { default: { color: "white" } } },
+    svg: { content: "" },
+  },
+  stop: {
+    text: { content: "중지", styles: { default: { color: "white" } } },
+    svg: { content: "" },
+  },
+  alwaysEnabled: true,
+};

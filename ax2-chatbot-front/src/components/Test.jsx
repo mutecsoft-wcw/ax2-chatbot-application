@@ -128,7 +128,7 @@ const Test = () => {
                 ref={chatRef}
                 style={Styles.chatComponentStyle}
                 textInput={Styles.textInputStyle}
-                submitButtonStyles={Styles.submitButtonStyle}
+                submitButtonStyles={Styles.submitButtonStyles}
             />
         </div>
     );
