@@ -1,10 +1,12 @@
-from typing import Optional, Union, List
+from typing import Optional
 from pydantic import BaseModel, Field
 from langchain_core.tools import tool
+from datetime import datetime
 
 from app.core import settings
-from .es import search_guide_documents, search_health_info
+from .es import search_guide_documents, search_health_info, search_indicator_data, _indicator_result_formatted
 
+CURRENT_YEAR = datetime.now().year
 
 class SearchGuideInput(BaseModel):
     query: str = Field(
@@ -17,9 +19,16 @@ class SearchGuideInput(BaseModel):
             "(e.g., User asks: 'A지침서와 B지침서의 목적' -> Call 1: query='A지침서 목적', Call 2: query='B지침서 목적')"
         )
     )
-    year: Optional[Union[int, List[int]]] = Field(
+    year: Optional[int] = Field(
         default=None,
-        description="사용자 질문에 특정 연도(예: 2023, 2024, 작년, 올해)가 언급된 경우 해당 연도(4자리 숫자). 언급이 없다면 null"
+        description=(
+            "Converts specific years (e.g., '2023') or relative terms (e.g., 'last year', 'this year', 'next year') "
+            f"mentioned in the user's query into a 4-digit integer. The baseline for the current year is {CURRENT_YEAR}. "
+            "[Important Rule]: When calling multiple tools in parallel for a single query, if a year (e.g., '2025') "
+            "is mentioned at the beginning or within the context, apply that same year to the 'year' parameter "
+            "of all relevant tools. "
+            "Return null only if there is no mention of a year throughout the entire query."
+        )
     )
 
 class HealthInfoSearchInput(BaseModel):
@@ -34,6 +43,30 @@ class HealthInfoSearchInput(BaseModel):
         )
     )
 
+class SearchIndicatorInput(BaseModel):
+    query: str = Field(
+        description=(
+            "A specific indicator name, disease, or health behavior to search for. (e.g., '당뇨병 유병률', '현재흡연율', '걷기실천율') "
+            "[CRITICAL RULE 1]: NEVER call this tool for simple greetings. "
+            "[CRITICAL RULE 2]: If you need to compare multiple indicators, regions, or years, "
+            "NEVER combine them into a single query. "
+            "You MUST split the question and call this tool multiple times independently (Parallel Calling). "
+            "(e.g., User asks: '2023년과 2024년 고혈압 유병률' -> Call 1: query='고혈압 유병률', year=2023 / Call 2: query='고혈압 유병률', year=2024)"
+        )
+    )
+    year: Optional[int] = Field(
+        default=None,
+        description=(
+            "Converts specific years (e.g., '2023') or relative terms (e.g., 'last year', 'this year', 'next year') "
+            f"mentioned in the user's query into a 4-digit integer. The baseline for the current year is {CURRENT_YEAR}. "
+            "[Important Rule]: When calling multiple tools in parallel for a single query, if a year (e.g., '2025') "
+            "is mentioned at the beginning or within the context, apply that same year to the 'year' parameter "
+            "of all relevant tools. "
+            "Return null only if there is no mention of a year throughout the entire query."
+        )
+    )
+
+# 지역사회건강조사 원시자료 이용지침서
 @tool("chs_raw_guide_tool", args_schema=SearchGuideInput)
 async def chs_raw_guide_tool(query: str, year: Optional[int] = None) -> str:
     """
@@ -55,6 +88,7 @@ async def chs_raw_guide_tool(query: str, year: Optional[int] = None) -> str:
         year=year
     )
 
+# 지역사회건강조사 조사문항지침서
 @tool("chs_question_guide_tool", args_schema=SearchGuideInput)
 async def chs_question_guide_tool(query: str, year: Optional[int] = None) -> str:
     """
@@ -77,6 +111,7 @@ async def chs_question_guide_tool(query: str, year: Optional[int] = None) -> str
         year=year
     )
 
+# 지역사회건강조사 조사표
 @tool("chs_form_tool", args_schema=SearchGuideInput)
 async def chs_form_tool(query: str, year: Optional[int] = None) -> str:
     """
@@ -98,6 +133,7 @@ async def chs_form_tool(query: str, year: Optional[int] = None) -> str:
         year=year
     )
 
+# 국민건강영양조사 원시자료 이용지침서
 @tool("knhanes_raw_guide_tool", args_schema=SearchGuideInput)
 async def knhanes_raw_guide_tool(query: str, year: Optional[int] = None) -> str:
     """
@@ -123,6 +159,7 @@ async def knhanes_raw_guide_tool(query: str, year: Optional[int] = None) -> str:
         year=year
     )
 
+# 질병관리청 국가건강정보
 @tool("nhip_health_info_tool", args_schema=HealthInfoSearchInput)
 async def nhip_health_info_tool(query: str) -> str:
     """
@@ -139,6 +176,72 @@ async def nhip_health_info_tool(query: str) -> str:
         query=query
     )
 
+# 지역사회건강조사 지표데이터
+@tool("chs_indicator_tool", args_schema=SearchIndicatorInput)
+async def chs_indicator_tool(query: str, year: Optional[int] = None) -> str:
+    """
+    [OBJECTIVE]
+    Retrieve actual statistical figures (percentages, rates, prevalence) from the Community Health Survey (CHS).
+    This tool performs a vector search directly against the exact 'indicator_name' field in Elasticsearch.
+
+    [INPUT GUIDANCE]
+    The `query` MUST be highly optimized to match the official indicator names. Align the `query` closely with these actual examples:
+    - Smoking (흡연): "현재흡연율", "담배제품 현재사용율", "담배제품 현재사용자의 금연시도율", "담배제품 현재 미사용자의 직장실내 간접흡연 노출률"
+    - Drinking (음주): "월간음주율", "고위험음주율", "연간음주자의 고위험음주율", "자동차 또는 오토바이 운전자의 연간 음주운전 경험률"
+    - Physical/Obesity (신체활동/비만): "걷기 실천율", "중강도 이상 신체활동 실천율", "건강생활실천율", "비만율(자가보고)", "연간 체중조절 시도율"
+    - Nutrition (영양): "아침 식사 실천율", "영양표시 인지율", "영양표시 활용률"
+    - Mental Health (정신건강): "스트레스 인지율", "연간 우울감 경험률", "우울증상유병률", "삶의 질 지수 (EQ-5D Index)"
+    - Chronic Disease (만성질환): "고혈압 진단 경험률 (30세 이상)", "당뇨병 진단 경험률 (30세 이상)", "고혈압 진단 경험자의 치료율 (30세 이상)", "혈압수치 인지율"
+    - Safety/Hygiene (안전/위생): "운전자석 안전벨트 착용률", "외출 후 손 씻기 실천율", "비누, 손 세정제 사용률", "어제 점심식사 후 칫솔질 실천율"
+
+    [WHEN TO USE]
+    - When the user specifically asks for numerical statistics, percentages (%), or indicator results.
+    - Questions like: "OO율이 얼마야?", "OO 지표 통계 알려줘", "What is the rate of..."
+
+    [MATCHING RULE]
+    - NEVER include conversational fluff in the `query`.
+    - If the user asks about Diabetes or Hypertension rates, include the age qualifier "(30세 이상)" in the query if appropriate to maximize vector similarity.
+    """
+
+    MIN_YEAR = 2019
+
+    target_year = year if year is not None else (CURRENT_YEAR - 1)
+
+    # 요청한 연도가 올해(또는 그 이후)라면, 가장 최신 데이터인 작년으로 덮어씌웁니다.
+    if target_year >= CURRENT_YEAR:
+        target_year = CURRENT_YEAR - 1
+
+    # 만약 요청 연도가 너무 과거라면 즉시 차단
+    if target_year < MIN_YEAR:
+        return f"[데이터 없음] 지역사회건강조사 지표는 {MIN_YEAR}년부터 제공됩니다. {target_year}년은 조회할 수 없습니다."
+
+    # 인덱스 타겟팅 및 검색 실행
+    target_index = f"chs-indicator-vector-{target_year}"
+
+    docs = await search_indicator_data(
+        index_name=target_index,
+        query=query
+    )
+
+    # 에러 발생 시 처리
+    if isinstance(docs, str):
+        return docs
+
+    # 검색 결과가 하나도 없는 경우
+    if len(docs) == 0:
+        return f"'{query}'와 관련하여 {target_year}년 통계 데이터를 찾지 못했습니다."
+
+    # 정상적으로 데이터를 찾은 경우 텍스트로 포맷팅
+    result_str = _indicator_result_formatted(docs)
+
+    # 사용자가 원래 요청했던 연도와 실제 조회된 연도(작년)가 다를 때만 안내 문구 추가
+    if year and year != target_year:
+        prefix = f"{year}년 데이터가 아직 구축되지 않아, 가장 최신인 {target_year}년 자료를 대신 보여드립니다.\n\n"
+        return f"{prefix}{result_str}"
+
+    # 모든 연도를 다 뒤졌는데도 끝내 못 찾았을 경우
+    return result_str
+
 
 tools = [
     chs_raw_guide_tool,
@@ -146,4 +249,5 @@ tools = [
     chs_form_tool,
     knhanes_raw_guide_tool,
     nhip_health_info_tool,
+    chs_indicator_tool
 ]
