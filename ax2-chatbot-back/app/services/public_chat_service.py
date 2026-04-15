@@ -6,14 +6,14 @@ from langchain_core.messages import BaseMessage, SystemMessage, ToolMessage, AIM
 from app.core import logger
 from app.schemas import ChatResponse
 from app.utils.file_utils import load_prompt_file
-from app.providers import llm_model, tools
+from app.providers import llm_model, public_tools
 from app.services.redis_service import redis_service
 
 
 class PublicChatService:
     def __init__(self):
         self.llm = llm_model
-        self.tools = tools
+        self.tools = public_tools
         self.tool_handlers = {tool.name: tool for tool in self.tools}
         self.llm_with_tools = self.llm.bind_tools(self.tools)
         self.final_response_prompt = load_prompt_file("public-guide.txt")

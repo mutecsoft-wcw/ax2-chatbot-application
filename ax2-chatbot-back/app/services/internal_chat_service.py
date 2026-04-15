@@ -6,17 +6,17 @@ from langchain_core.messages import BaseMessage, SystemMessage, ToolMessage, AIM
 from app.core import logger
 from app.schemas import ChatResponse
 from app.utils.file_utils import load_prompt_file
-from app.providers import llm_model, tools
+from app.providers import llm_model, internal_tools
 from app.services.redis_service import redis_service
 
 
 class InternalChatService:
     def __init__(self):
         self.llm = llm_model
-        self.tools = tools
+        self.tools = internal_tools
         self.tool_handlers = {tool.name: tool for tool in self.tools}
         self.llm_with_tools = self.llm.bind_tools(self.tools)
-        self.final_response_prompt = load_prompt_file("public-guide.txt")
+        self.final_response_prompt = load_prompt_file("internal-guide.txt")
 
     async def stream_chat(self, user_prompt: str, session_id: str):
         try:
@@ -132,8 +132,7 @@ class InternalChatService:
 
     # --- [STEP 4] ---
     @staticmethod
-    def _build_final_messages(user_prompt: str, tool_results: list, past_messages: list[BaseMessage]) -> list[
-        BaseMessage]:
+    def _build_final_messages(user_prompt: str, tool_results: list, past_messages: list[BaseMessage]) -> list[BaseMessage]:
         processed_messages = []
         for msg in past_messages:
             if isinstance(msg, AIMessage):

@@ -242,12 +242,16 @@ async def chs_indicator_tool(query: str, year: Optional[int] = None) -> str:
     # 모든 연도를 다 뒤졌는데도 끝내 못 찾았을 경우
     return result_str
 
+# 대국민 챗봇 전용 도구
+public_tools = [
+    nhip_health_info_tool
+]
 
-tools = [
+# 업무지원 챗봇 전용 도요
+internal_tools = [
     chs_raw_guide_tool,
     chs_question_guide_tool,
     chs_form_tool,
     knhanes_raw_guide_tool,
-    nhip_health_info_tool,
     chs_indicator_tool
 ]
