@@ -48,6 +48,15 @@ export const chatApi = {
     return response.json();
   },
 
+  // TODO[wcw] 설문 데이터 응답값 보기 조회 
+  fetchSurveyValue: async (id, value) => {
+    const baseUrl = process.env.REACT_APP_CHAT_HISTORY_URL;
+    const finalUrl = `${baseUrl}?id=${encodeURIComponent(id)}&value=${encodeURIComponent(value)}`;
+    const response = await fetch(finalUrl);
+    if (!response.ok) throw new Error("응답값 보기 로드 실패");
+    return response;
+  },
+
   // TODO[wcw] 개인 맞춤형 리포트 요청
 //   createPesonalReport: async (sessionId) => {
 //     const baseUrl = process.env.REACT_APP_CREATE_PERSONAL_REPORT_URL;

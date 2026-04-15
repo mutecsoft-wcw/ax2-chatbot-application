@@ -2,8 +2,8 @@ const gokBlue = "var(--gok-blue)";
 
 export const chatComponentStyle = {
   borderRadius: "20px",
-  width: "100%",
-  maxWidth: "1200px",
+  width: "95%",
+  maxWidth: "800px",
   height: "100%",
   boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
   overflow: "hidden", // 라운드 코너 밖으로 내용 안나가게
@@ -92,6 +92,5 @@ export const submitButtonStyles = {
     text: { content: "중지", styles: { default: { color: "white" } } },
     svg: { content: "" },
   },
-  disabled: { container: { default: { backgroundColor: "#afafaf" } } },
   alwaysEnabled: true,
 };
