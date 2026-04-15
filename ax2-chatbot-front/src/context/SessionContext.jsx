@@ -4,7 +4,7 @@ export const SessionContext = createContext();
 
 export const SessionProvider = ({ children }) => {
     const [sessionId, setSessionId] = useState(() =>
-        localStorage.getItem('chatSessionId') || ''
+        localStorage.getItem('chatSessionId') || '',
     );
 
     const updateSession = useCallback((newId) => {

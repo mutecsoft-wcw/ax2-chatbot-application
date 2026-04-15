@@ -4,18 +4,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px; 
+    padding: 20px; 
     background-color: #f4f7f9;
     box-sizing: border-box
-}
-
-.chat-component {
-    border-radius: 20px;
-    width: 100%;
-    max-width: 800px;
-    height: 100%;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
 }
 
 .header-title {
@@ -26,14 +17,15 @@
 
 .header {
     width: 100%;
-    max-width: 800px;
+    max-width: 1200px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 15px;
+    padding: 12px 0;
     border-radius: 15px 15px 0 0;
     z-index: 1;
     box-sizing: border-box;
+    margin: 0 auto;
 }
 
 .report-upload-button {
@@ -56,22 +48,5 @@
 .input-area {
     border-top: 1px solid #eee;
     padding: 10px;
-}
-
-.text-button {
-    background-color: var(--gok-blue);
-    border-radius: 8px;
-    width: 60px;
-    height: 36px;
-    margin-right: 6px;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: none;
-    color: white;
-    font-size: 0.85rem;
-    font-weight: 600;
 }
 

@@ -3,7 +3,7 @@ const gokBlue = "var(--gok-blue)";
 export const chatComponentStyle = {
   borderRadius: "20px",
   width: "100%",
-  maxWidth: "800px",
+  maxWidth: "1200px",
   height: "100%",
   boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
   overflow: "hidden", // 라운드 코너 밖으로 내용 안나가게
@@ -21,8 +21,9 @@ export const textInputStyle = {
       justifyContent: "center",
       display: "flex",
       padding: "5px 15px",
-      width: "77%",
-      fontSize: "16px", // 모바일 자동 줌 방지 (최소 16px)
+      width: "75%",
+      fontSize: "16px",
+      marginLeft: "-40px",
     },
   },
   //   disabled: isProcessing,
@@ -61,14 +62,26 @@ export const submitButtonStyles = {
     container: {
       default: {
         backgroundColor: gokBlue,
-        borderRadius: "8px",
-        margin: "0 0 2px 12px",
-        padding: "11px",
+        borderRadius: "10px",
+        marginBottom: "0.1em",
+        marginLeft: "10px",
+        padding: "8px",
+        minWidth: "15px",
+        height: "45px",
+        height: "40%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       },
     },
     text: {
       content: "전송",
-      styles: { default: { color: "white" } },
+      styles: {
+        default: { color: "white" },
+        fontSize: "14px",
+        fontWeight: "bold",
+        whiteSpace: "nowrap",
+      },
     },
     svg: { content: "" },
   },
@@ -80,5 +93,6 @@ export const submitButtonStyles = {
     text: { content: "중지", styles: { default: { color: "white" } } },
     svg: { content: "" },
   },
+  disabled: { container: { default: { backgroundColor: "#afafaf" } } },
   alwaysEnabled: true,
 };
