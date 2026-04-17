@@ -3,10 +3,10 @@ const gokBlue = "var(--gok-blue)";
 export const chatComponentStyle = {
   borderRadius: "20px",
   width: "100%",
-  maxWidth: "800px",
   height: "100%",
   boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-  overflow: "hidden", // 라운드 코너 밖으로 내용 안나가게
+  overflow: "hidden",
+  backgroundColor: "white",
 };
 
 export const textInputStyle = {
@@ -15,15 +15,15 @@ export const textInputStyle = {
   },
   styles: {
     container: {
-      border: "1px solid lightgray",
-      borderRadius: "10px",
+      border: "1px solid #dcdcdc",
+      borderRadius: "12px",
       alignItems: "center",
       justifyContent: "center",
       display: "flex",
-      padding: "5px 15px",
-      width: "75%",
+      padding: "8px 0",
+      width: "80%",
       fontSize: "16px",
-      marginLeft: "-40px",
+      marginLeft: "-40px"
     },
   },
   //   disabled: isProcessing,
@@ -34,16 +34,18 @@ export const messageStyle = {
     shared: {
       innerContainer: {
         fontSize: "0.95rem",
-        padding: "10px 14px",
-        maxWidth: "85%", // 모바일에서 말풍선이 너무 꽉 차지 않게
+        padding: "12px 16px",
+        maxWidth: "80%",
+        lineHeight: "1.5",
       },
-      outerContainer: { margin: "8px 0" },
+      outerContainer: { margin: "10px 0" },
     },
     user: {
       bubble: {
         backgroundColor: gokBlue,
         color: "white",
         borderRadius: "18px 18px 2px 18px",
+        marginLeft: "auto",
       },
     },
     ai: {
@@ -51,6 +53,7 @@ export const messageStyle = {
         backgroundColor: "#f0f2f5",
         color: "#333",
         borderRadius: "18px 18px 18px 2px",
+        marginRight: "auto",
       },
     },
   },
@@ -63,14 +66,15 @@ export const submitButtonStyles = {
       default: {
         backgroundColor: gokBlue,
         borderRadius: "10px",
-        marginBottom: "0.1em",
-        marginLeft: "10px",
-        padding: "8px",
+        marginBottom: "2px",
+        marginLeft: "8px",
+        padding: "10px 7px",
         minWidth: "15px",
         height: "29px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        transition: "opacity 0.2s",
       },
     },
     text: {
@@ -93,4 +97,14 @@ export const submitButtonStyles = {
     svg: { content: "" },
   },
   alwaysEnabled: true,
+};
+
+export const inputAreaStyles = {
+  container: {
+    display: "flex",
+    alignItems: "flex-end",
+    padding: "12px 16px",
+    backgroundColor: "#fff",
+    borderTop: "1px solid #f0f0f0",
+  },
 };

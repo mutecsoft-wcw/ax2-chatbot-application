@@ -105,7 +105,7 @@ export const ResponseManager = {
                   style="background: ${"var(--gok-blue)"}; 
                          color: ${"white"}; 
                          border: none; padding: 5px 15px; border-radius: 15px; cursor: pointer;">
-            ${btn.label}
+            ${btn.label}  
           </button>
         `
         )

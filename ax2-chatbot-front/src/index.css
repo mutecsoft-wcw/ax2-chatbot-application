@@ -1,58 +1,62 @@
-
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    /* 모바일에서 클릭 시 발생하는 파란색 하이라이트 제거 */
     -webkit-tap-highlight-color: transparent;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  button:focus, input:focus {
+    outline: none;
+  }
+
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
   }
   
   html, body, #root {
     width: 100%;
-    /* 100vh 대신 100dvh(Dynamic Viewport Height)를 사용하면 
-       모바일 브라우저 UI(주소창 등) 변화에 맞춰 높이가 자동 조절. 
-    */
     height: 100%;
     height: 100dvh; 
-    /* 가로 스크롤 방지 */
     overflow-x: hidden;
   }
   
   body {
-    /* 모바일에서 텍스트 크기 자동 조절 방지 */
     -webkit-text-size-adjust: none;
-    /* 스크롤 시 바운스 효과가 어색할 경우 방지 (필요 시 주석 해제) */
-    /* overscroll-behavior: none; */
   }
   
   :root {
     --gok-blue: rgb(0, 55, 100);    /* 정부청색 */
     --gok-red: rgb(228, 3, 46);     /* 정부적색 */
     --gok-gray: rgb(87, 87, 87);    /* 정부회색 */
-    /* 모바일에서 손가락으로 누르기 편한 최소 높이 가이드 */
     --touch-target: 44px;
+    --safe-area-top: env(safe-area-inset-top);
+    --safe-area-bottom: env(safe-area-inset-bottom);
   }
   
   .App {
     display: flex;
     flex-direction: column;
-    /* 모바일 환경에 따라 최소 높이 설정 */
     min-height: 100%;
     min-height: 100dvh;
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     
-    /* 배경색과 텍스트 색상 기본값*/
     background-color: #f4f7f9;
     color: #333;
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
   }
   
-  /* 이미지나 영상이 모바일 화면 밖으로 나가는 것 방지 */
   img, video {
     max-width: 100%;
     height: auto;
   }
   
-  /* 입력창 포커스 시 모바일 줌 방지 (폰트 16px 이상 유지) */
+
   input, select, textarea {
     font-size: 16px !important;
   }

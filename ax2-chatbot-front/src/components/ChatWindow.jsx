@@ -135,7 +135,7 @@ const ChatWindow = () => {
                     }}
                     messageStyles={Styles.messageStyle}
                     textInput={Styles.textInputStyle}
-
+                    inputAreaStyle={Styles.inputAreaStyles}
                     submitButtonStyles={Styles.submitButtonStyles}
                 />
             ) : (

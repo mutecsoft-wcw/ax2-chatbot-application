@@ -7,7 +7,7 @@ const Icon = ({ type = 'full', height = 64, ...props }) => {
     // 1. 마크만 있는 버전 (좁은 공간, 아이콘용)
     if (type === 'mark') {
         return (
-            <svg viewBox="0 0 80 88" height={height} fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+            <svg viewBox="10 10 70 70" height={height} fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
                 <style>{styles}</style>
                 <g id="Layer 1">
                     <path className="s0" d="m73.79 43.71c0 16.34-13.25 29.58-29.58 29.58-16.34 0-29.58-13.24-29.58-29.58 0-16.33 13.24-29.58 29.58-29.58 16.33 0 29.58 13.25 29.58 29.58z" />
