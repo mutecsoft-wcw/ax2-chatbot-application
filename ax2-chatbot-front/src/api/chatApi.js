@@ -1,7 +1,7 @@
 export const chatApi = {
   // 히스토리 가져오기
   fetchHistory: async (sessionId) => {
-    const baseUrl = process.env.REACT_APP_CHAT_HISTORY_URL;
+    const baseUrl = `${process.env.REACT_APP_PUBLIC_API_URL}/history`;
     const finalUrl = `${baseUrl}?sessionId=${encodeURIComponent(sessionId)}`;
     const response = await fetch(finalUrl);
     if (!response.ok) throw new Error("히스토리 로드 실패");
@@ -50,7 +50,7 @@ export const chatApi = {
 
   // TODO[wcw] 설문 데이터 응답값 보기 조회 
   fetchSurveyValue: async (id, value) => {
-    const baseUrl = process.env.REACT_APP_CHAT_HISTORY_URL;
+    const baseUrl = process.env.REACT_APP_SEARCH_SURVEY_VALUE_URL;
     const finalUrl = `${baseUrl}?id=${encodeURIComponent(id)}&value=${encodeURIComponent(value)}`;
     const response = await fetch(finalUrl);
     if (!response.ok) throw new Error("응답값 보기 로드 실패");

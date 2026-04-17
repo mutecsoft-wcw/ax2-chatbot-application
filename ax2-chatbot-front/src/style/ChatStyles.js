@@ -2,7 +2,7 @@ const gokBlue = "var(--gok-blue)";
 
 export const chatComponentStyle = {
   borderRadius: "20px",
-  width: "95%",
+  width: "100%",
   maxWidth: "800px",
   height: "100%",
   boxShadow: "0 10px 25px rgba(0,0,0,0.1)",

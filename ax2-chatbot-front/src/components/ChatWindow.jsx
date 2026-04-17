@@ -103,7 +103,7 @@ const ChatWindow = () => {
                         }
                     }}
                     connect={{
-                        url: process.env.REACT_APP_PUBLIC_API_URL,
+                        url: `${process.env.REACT_APP_PUBLIC_API_URL}/public/stream-chat`,
                         method: 'POST',
                         stream: 'sse'
                     }}
