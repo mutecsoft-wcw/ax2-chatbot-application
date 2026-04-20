@@ -118,6 +118,204 @@ export const ResponseManager = {
       };
     }
 
+    if (type === "survey_question") {
+      const questionHtml = `
+        <p margin-bottom: 10px;">
+          ${data.text || ""}
+        </p>
+      `;
+      const buttonsHtml = data.buttons.map(btn => `
+        <button 
+          onclick='window.handleChatAction("${btn.action}", ${JSON.stringify(btn.payload || {})})'
+          style="background: var(--gok-blue); 
+                color: white; 
+                border: none; padding: 5px 15px; border-radius: 15px; cursor: pointer;">
+          ${btn.label}
+        </button>
+      `).join("");
+
+      return {
+        role: "ai",
+        html: `
+          ${questionHtml}
+          <div style="display: flex; gap: 8px; margin-top: 10px;">
+            ${buttonsHtml}
+          </div>
+        `
+      };
+    }
+
+    if (type === "custom_html") {
+
+      const surveyStyles = `
+        <style>
+            .health-survey-card {
+                width: 100%; min-width: 600px; max-width: 600px; border: 1px solid #333;
+                background: #fff; font-family: 'Malgun Gothic', sans-serif; color: #000;
+                padding: 20px; box-sizing: border-box; line-height: 1.5;
+            }
+            .main-header-section {
+                text-align: center;
+                margin-bottom: 30px;
+                border-bottom: 4px double #2c3e50; /* 공공기관 특유의 이중선 */
+                padding-bottom: 20px;
+                position: relative;
+            }
+            .main-header-title {
+                font-size: 28px;
+                font-weight: 900;
+                color: #1a2a3a;
+                letter-spacing: 6px; /* 글자 사이를 벌려 권위 있는 느낌 강조 */
+                margin: 10px 0;
+                padding-left: 6px; /* letter-spacing으로 인한 비대칭 교정 */
+            }
+            .main-header-subtitle {
+                font-size: 13px;
+                color: #555;
+                font-weight: bold;
+                background: #f0f0f0;
+                display: inline-block;
+                padding: 2px 15px;
+                border-radius: 15px;
+            }
+            .health-main-title {
+                font-size: 20px; font-weight: bold; border-bottom: 2px solid #000;
+                padding-bottom: 5px; margin-bottom: 20px; display: inline-block;
+            }
+            /* 안내 문구 박스 */
+            .info-box {
+                background-color: #f1f4f8; border: 1px solid #d1d5db;
+                padding: 10px 12px; margin-bottom: 15px; font-size: 13px; font-weight: bold;
+                color: #2c3e50;
+            }
+            
+            .question-item { margin-bottom: 22px; font-size: 14px; }
+            .question-text { font-weight: bold; margin-bottom: 10px; }
+            .question-text .num { margin-right: 8px; font-size: 15px; }
+        
+            /* 입력 행 스타일 */
+            .input-row { margin-left: 24px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+            
+            .gov-input {
+                padding: 5px 8px; border: 1px solid #777; border-radius: 2px;
+                font-size: 14px; outline: none;
+            }
+            .gov-input:focus { border-color: #2c3e50; background: #f9f9f9; }
+            
+            .gov-select {
+                padding: 5px; border: 1px solid #777; border-radius: 2px;
+                font-size: 14px; background: #fff;
+            }
+        
+            /* 하위 질문 (ㄴ 화살표) */
+            .sub-question { margin-left: 28px; margin-top: 12px; position: relative; }
+            .sub-question::before { 
+                content: '└'; position: absolute; left: -18px; top: 0; 
+                font-weight: bold; color: #2c3e50; 
+            }
+        
+            .unit { font-size: 13px; color: #333; margin-left: 2px; }
+        
+            /* 버튼 스타일 */
+            .gov-footer { margin-top: 30px; border-top: 1px solid #000; padding-top: 20px; }
+            .gov-btn-submit {
+                width: 100%; padding: 12px; background: #2c3e50; color: white;
+                border: none; border-radius: 2px; font-weight: bold; cursor: pointer; font-size: 15px;
+            }
+            .gov-btn-submit:hover { background: #1a2a3a; }
+        </style>
+      `;
+
+      const renderQuestion = (q, index) => {
+        if (q.type === "text") {
+          return `
+            <div class="question-item">
+              <div class="question-text">
+                <span class="num">${index + 1}.</span> ${q.question}
+              </div>
+              <div class="input-row">
+                <input class="gov-input" placeholder="${q.placeholder}" />
+                ${q.suffix || ""}
+              </div>
+            </div>
+          `;
+        }
+
+        if (q.type === "number") {
+          return `
+            <div class="question-item">
+              <div class="question-text">
+                <span class="num">${index + 1}.</span> ${q.question}
+              </div>
+              <div class="input-row">
+                <input type="number" class="gov-input" style="width:60px;" placeholder="${q.placeholder}" min="${q.min}" max="${q.max}"/>
+                ${q.suffix || ""}
+              </div>
+            </div>
+          `;
+        }
+
+        if (q.type === "radio") {
+            return `
+              <div class="question-item">
+                <div class="question-text">
+                  <span class="num">${index + 1}.</span> ${q.question}
+                </div>
+                <div class="input-row">
+                  ${q.options.map(opt => `
+                    <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; margin-right: 15px;">
+                      <input type="radio" name="${q.id}" value="${opt.value}"/>
+                      <span>${opt.label}</span>
+                    </label>
+                  `).join("")}
+                </div>
+              </div>
+            `;
+          }
+
+        if (q.type === "select") {
+          return `
+            <div class="question-item">
+              <div class="question-text">
+                <span class="num">${index + 1}.</span> ${q.question}
+              </div>
+              <div class="input-row">
+                <select class="gov-select" style="width:180px;">
+                  <option value="">선택</option>
+                  ${q.options.map(opt => `
+                    <option value="${opt.value}">${opt.label}</option>
+                  `).join("")}
+                </select>
+              </div>
+            </div>
+          `;
+        }
+
+        return "";
+      };
+
+      const sectionsHtml = data.sections.map(section => `
+        <div>
+          <div class="health-main-title">${section.title}</div>
+          ${section.questions.map((q, i) => renderQuestion(q, i)).join("")}
+        </div>
+      `).join("");
+
+      return {
+        role: "ai",
+        html: `
+          ${surveyStyles}
+          <div class="dynamic-survey-card health-survey-card">
+            <div class="main-header-section">
+              <h1 class="main-header-title">${data.title}</h1>
+              <div class="main-header-subtitle">${data.subtitle}</div>
+            </div>
+            ${sectionsHtml}
+          </div>
+        `
+      };
+    }
+
     return { text: safeText };
   },
 };

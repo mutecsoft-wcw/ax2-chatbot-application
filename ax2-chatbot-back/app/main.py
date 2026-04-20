@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.chat import router as chat_router
+from app.api.chat import router
 from app.core.security import cors
 
 # FastAPI 인스턴스 생성
@@ -9,7 +9,7 @@ app = FastAPI()
 cors(app)
 
 # 라우터 등록
-app.include_router(chat_router)
+app.include_router(router)
 
 if __name__ == "__main__":
     import uvicorn
