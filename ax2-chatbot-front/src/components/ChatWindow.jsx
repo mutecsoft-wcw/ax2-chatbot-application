@@ -74,7 +74,7 @@ const ChatWindow = () => {
     return (
         <div className="container">
             <div className="header">
-                <span className="header-title">대국민 챗봇</span>
+                <span className="header-title">무엇이든 물어보세요, 건강지기</span>
                 <button
                     onClick={() => setIsModalOpen(true)}
                     className="report-upload-button"
@@ -89,7 +89,7 @@ const ChatWindow = () => {
                     style={Styles.chatComponentStyle}
                     history={initialHistory.current}
                     stream={true}
-                    scrollButton="true"
+                    scrollButton={true}
                     onComponentRender={(chatElement) => {
                         // 딱 한 번만 실행되도록 제어
                         if (!isProcessed.current && initialQuery.current) {
