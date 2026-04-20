@@ -55,6 +55,31 @@ const ChatWindow = () => {
         initChat();
     }, [sessionId, updateSession, navigate, location.pathname, location.state?.initialMessage, isLoaded]);
 
+    // 설문 예, 아니오 버튼 응답 처리 로직
+    useEffect(() => {
+      window.handleChatAction = (action, payload) => {
+        console.log("ACTION:", action, payload);
+
+        if (action === "START_SURVEY") {
+          chatRef.current?.submitUserMessage({
+            text: "__START_SURVEY__",
+            role: "system"
+          });
+        }
+
+        if (action === "CANCEL_SURVEY") {
+          chatRef.current?.submitUserMessage({
+            text: "__CANCEL_SURVEY__",
+            role: "system"
+          });
+        }
+      };
+
+      return () => {
+          delete window.handleChatAction;
+      };
+    }, [sessionId, navigate]);
+
     const handleFileUpload = async (file) => {
 
         // TODO[wcw] 파일 업로드 API 호출
@@ -132,6 +157,7 @@ const ChatWindow = () => {
                     responseInterceptor={(response) => {
                         if (response?.sessionId) updateSession(response.sessionId);
                         return responseInterceptor(response);
+                        // return ResponseManager.processResponse(response);
                     }}
                     messageStyles={Styles.messageStyle}
                     textInput={Styles.textInputStyle}

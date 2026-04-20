@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 
 class LlmRequest(BaseModel):
@@ -7,4 +7,7 @@ class LlmRequest(BaseModel):
     sessionId: str = ""
 
 class ChatResponse(BaseModel):
-    text: str = Field(...)
+    text: Optional[str] = None
+    type: Optional[str] = "text"
+    data: Optional[Dict[str, Any]] = None
+    role: Optional[str] = "ai"
