@@ -50,7 +50,7 @@ class SurveyService:
                             },
                             {
                                 "type": "radio",
-                                "id": "sex",
+                                "id": "gender",
                                 "question": "귀하의 성별을 선택해 주십시오.",
                                 "options": [
                                     {
@@ -65,7 +65,7 @@ class SurveyService:
                             },
                             {
                                 "type": "select",
-                                "id": "residence",
+                                "id": "region",
                                 "question": "현재 거주하고 계신 지역은 어디입니까?",
                                 "options": [
                                     {
@@ -75,6 +75,42 @@ class SurveyService:
                                     {
                                         "value" : "busan",
                                         "label" : "부산"
+                                    },
+                                ]
+                            },
+                            {
+                                "type": "text",
+                                "id": "occupation",
+                                "question": "귀하의 직업은 무엇입니까?",
+                                "placeholder": "직업",
+                            },
+                            {
+                                "type": "radio",
+                                "id": "marital_status",
+                                "question": "귀하의 혼인 여부를 선택해주세요.",
+                                "options": [
+                                    {
+                                        "value" : "non_married",
+                                        "label" : "미혼"
+                                    },
+                                    {
+                                        "value" : "married",
+                                        "label" : "기혼"
+                                    },
+                                ]
+                            },
+                            {
+                                "type": "radio",
+                                "id": "current_cigarette_smoker",
+                                "question": "귀하의 현재 흡연 여부를 선택해주세요.",
+                                "options": [
+                                    {
+                                        "value" : "smoking",
+                                        "label" : "흡연"
+                                    },
+                                    {
+                                        "value" : "non_smoking",
+                                        "label" : "비흡연"
                                     },
                                 ]
                             },
@@ -110,8 +146,8 @@ class SurveyService:
                                 ]
                             },
                         ]
-                    }
-                ]
+                    },
+                ],
             }
         }
 

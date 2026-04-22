@@ -35,7 +35,6 @@ export const messageStyle = {
       innerContainer: {
         fontSize: "0.95rem",
         padding: "12px 16px",
-        maxWidth: "80%",
         lineHeight: "1.5",
       },
       outerContainer: { margin: "10px 0" },
@@ -46,6 +45,7 @@ export const messageStyle = {
         color: "white",
         borderRadius: "18px 18px 2px 18px",
         marginLeft: "auto",
+        maxWidth: "50%"
       },
     },
     ai: {
@@ -54,6 +54,7 @@ export const messageStyle = {
         color: "#333",
         borderRadius: "18px 18px 18px 2px",
         marginRight: "auto",
+        maxWidth: "100%"
       },
     },
   },

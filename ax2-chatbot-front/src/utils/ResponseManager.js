@@ -124,15 +124,21 @@ export const ResponseManager = {
           ${data.text || ""}
         </p>
       `;
-      const buttonsHtml = data.buttons.map(btn => `
+      const buttonsHtml = data.buttons
+        .map(
+          (btn) => `
         <button 
-          onclick='window.handleChatAction("${btn.action}", ${JSON.stringify(btn.payload || {})})'
+          onclick='window.handleChatAction("${btn.action}", ${JSON.stringify(
+            btn.payload || {}
+          )})'
           style="background: var(--gok-blue); 
                 color: white; 
                 border: none; padding: 5px 15px; border-radius: 15px; cursor: pointer;">
           ${btn.label}
         </button>
-      `).join("");
+      `
+        )
+        .join("");
 
       return {
         role: "ai",
@@ -141,11 +147,12 @@ export const ResponseManager = {
           <div style="display: flex; gap: 8px; margin-top: 10px;">
             ${buttonsHtml}
           </div>
-        `
+        `,
       };
     }
 
     if (type === "custom_html") {
+      const surveyId = `survey_${Date.now()}`; // TODO[wcw] 임시 설문ID값 내용 공유 후 의견 종합 필요.
 
       const surveyStyles = `
         <style>
@@ -223,6 +230,37 @@ export const ResponseManager = {
                 border: none; border-radius: 2px; font-weight: bold; cursor: pointer; font-size: 15px;
             }
             .gov-btn-submit:hover { background: #1a2a3a; }
+
+            /* --- 페이지네이션 관련 새 스타일 --- */
+            .survey-section { display: none; } /* 기본적으로 숨김 */
+            .survey-section.active { display: block; } /* 현재 페이지 때만 표시 */
+
+            .btn-group {
+                margin-top: 30px;
+                border-top: 1px solid #eee;
+                padding-top: 20px;
+                display: flex;
+                gap: 10px;
+                justify-content: center; /* 버튼 중앙 정렬 */
+            }
+
+            .gov-btn {
+                padding: 10px 20px;
+                border: 1px solid #777;
+                border-radius: 2px;
+                font-weight: bold;
+                cursor: pointer;
+                font-size: 14px;
+                transition: background 0.2s;
+            }
+
+            /* 이전 버튼 (흰색 배경) */
+            .btn-prev { background: #fff; color: #333; }
+            .btn-prev:hover { background: #f5f5f5; }
+
+            /* 다음/제출 버튼 (정부색 배경) */
+            .btn-next, .btn-submit { background: #2c3e50; color: white; border: none; }
+            .btn-next:hover, .btn-submit:hover { background: #1a2a3a; }
         </style>
       `;
 
@@ -248,7 +286,9 @@ export const ResponseManager = {
                 <span class="num">${index + 1}.</span> ${q.question}
               </div>
               <div class="input-row">
-                <input type="number" class="gov-input" style="width:60px;" placeholder="${q.placeholder}" min="${q.min}" max="${q.max}"/>
+                <input type="number" class="gov-input" style="width:60px;" placeholder="${
+                  q.placeholder
+                }" min="${q.min}" max="${q.max}"/>
                 ${q.suffix || ""}
               </div>
             </div>
@@ -256,22 +296,26 @@ export const ResponseManager = {
         }
 
         if (q.type === "radio") {
-            return `
+          return `
               <div class="question-item">
                 <div class="question-text">
                   <span class="num">${index + 1}.</span> ${q.question}
                 </div>
                 <div class="input-row">
-                  ${q.options.map(opt => `
+                  ${q.options
+                    .map(
+                      (opt) => `
                     <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; margin-right: 15px;">
                       <input type="radio" name="${q.id}" value="${opt.value}"/>
                       <span>${opt.label}</span>
                     </label>
-                  `).join("")}
+                  `
+                    )
+                    .join("")}
                 </div>
               </div>
             `;
-          }
+        }
 
         if (q.type === "select") {
           return `
@@ -282,9 +326,13 @@ export const ResponseManager = {
               <div class="input-row">
                 <select class="gov-select" style="width:180px;">
                   <option value="">선택</option>
-                  ${q.options.map(opt => `
+                  ${q.options
+                    .map(
+                      (opt) => `
                     <option value="${opt.value}">${opt.label}</option>
-                  `).join("")}
+                  `
+                    )
+                    .join("")}
                 </select>
               </div>
             </div>
@@ -294,25 +342,86 @@ export const ResponseManager = {
         return "";
       };
 
-      const sectionsHtml = data.sections.map(section => `
-        <div>
-          <div class="health-main-title">${section.title}</div>
-          ${section.questions.map((q, i) => renderQuestion(q, i)).join("")}
-        </div>
-      `).join("");
+      const totalSections = data.sections.length;
+
+      const sectionsHtml = data.sections
+        .map((section, sIndex) => {
+          const isFirst = sIndex === 0;
+          const isLast = sIndex === totalSections - 1;
+
+          let buttonsHtml = '<div class="btn-group">';
+
+          if (totalSections > 1) {
+            // 페이지가 여러 개일 때만 네비게이션 버튼 표시
+            if (!isFirst) {
+              // 첫 페이지가 아니면 '이전' 버튼 추가
+              buttonsHtml += `
+          <button type="button" class="gov-btn btn-prev" 
+            onclick="
+              const card = this.closest('.health-survey-card');
+              card.querySelectorAll('.survey-section').forEach(s => s.classList.remove('active'));
+              card.querySelector('#section_${
+                sIndex - 1
+              }').classList.add('active');
+            ">이전 페이지로</button>`;
+            }
+
+            if (!isLast) {
+              // 마지막 페이지가 아니면 '다음' 버튼 추가
+              buttonsHtml += `
+          <button type="button" class="gov-btn btn-next" 
+            onclick="
+              const card = this.closest('.health-survey-card');
+              card.querySelectorAll('.survey-section').forEach(s => s.classList.remove('active'));
+              card.querySelector('#section_${
+                sIndex + 1
+              }').classList.add('active');
+            ">다음 페이지로</button>`;
+            }
+          }
+
+          if (isLast) {
+            // 마지막 페이지라면 '제출' 버튼 추가
+            buttonsHtml += `
+        <button type="button" class="gov-btn btn-submit" 
+          onclick="
+            const card = this.closest('.health-survey-card');
+            const data = {};
+            card.querySelectorAll('input, select').forEach(i => {
+              if(i.type === 'radio' && !i.checked) return;
+              if(i.name || i.id) data[i.name || i.id] = i.value;
+            });
+            console.log('제출 데이터:', data);
+            alert('설문 제출 완료! 콘솔을 확인하세요.');
+          ">설문 제출</button>`;
+          }
+
+          buttonsHtml += "</div>";
+
+          return `
+            <div id="section_${sIndex}" class="survey-section ${
+                    isFirst ? "active" : ""
+                }">
+                <div class="health-main-title">${section.title}</div>
+                ${section.questions.map((q, i) => renderQuestion(q, i)).join("")}
+                ${buttonsHtml}
+            </div>
+            `;
+        })
+        .join("");
 
       return {
         role: "ai",
         html: `
-          ${surveyStyles}
-          <div class="dynamic-survey-card health-survey-card">
-            <div class="main-header-section">
-              <h1 class="main-header-title">${data.title}</h1>
-              <div class="main-header-subtitle">${data.subtitle}</div>
-            </div>
-            ${sectionsHtml}
-          </div>
-        `
+              ${surveyStyles}
+              <div id="${surveyId}" class="dynamic-survey-card health-survey-card">
+                <div class="main-header-section">
+                  <h1 class="main-header-title">${data.title}</h1>
+                  <div class="main-header-subtitle">${data.subtitle}</div>
+                </div>
+                ${sectionsHtml}
+              </div>
+            `,
       };
     }
 
