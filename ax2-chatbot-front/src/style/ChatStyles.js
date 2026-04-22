@@ -26,7 +26,6 @@ export const textInputStyle = {
       marginLeft: "-40px"
     },
   },
-  //   disabled: isProcessing,
 };
 
 export const messageStyle = {
@@ -54,7 +53,7 @@ export const messageStyle = {
         color: "#333",
         borderRadius: "18px 18px 18px 2px",
         marginRight: "auto",
-        maxWidth: "100%"
+        maxWidth: "80%"
       },
     },
   },

@@ -49,7 +49,7 @@ export const chatApi = {
   },
 
   // TODO[wcw] 설문 데이터 응답값 보기 조회 
-  fetchSurveyValue: async (id, value) => {
+  fetchSurveyForm: async (id, value) => {
     const baseUrl = process.env.REACT_APP_SEARCH_SURVEY_VALUE_URL;
     const finalUrl = `${baseUrl}?id=${encodeURIComponent(id)}&value=${encodeURIComponent(value)}`;
     const response = await fetch(finalUrl);

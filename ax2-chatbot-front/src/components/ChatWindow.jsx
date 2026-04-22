@@ -16,6 +16,7 @@ const ChatWindow = () => {
     const chatRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isUpload, setIsUpload] = useState(false);
 
     const isFetching = useRef(false);
     const hasFetched = useRef(false);
@@ -57,27 +58,26 @@ const ChatWindow = () => {
 
     // 설문 예, 아니오 버튼 응답 처리 로직
     useEffect(() => {
-      window.handleChatAction = (action, payload) => {
-        console.log("ACTION:", action, payload);
+        window.handleChatAction = (action, sessionId) => {
 
-        if (action === "START_SURVEY") {
-          chatRef.current?.submitUserMessage({
-            text: "__START_SURVEY__",
-            role: "system"
-          });
-        }
+            if (action === "START_SURVEY") {
+                chatRef.current?.submitUserMessage({
+                    text: "__START_SURVEY__",
+                    role: "system"
+                });
+            }
 
-        if (action === "CANCEL_SURVEY") {
-          chatRef.current?.submitUserMessage({
-            text: "__CANCEL_SURVEY__",
-            role: "system"
-          });
-        }
-      };
+            if (action === "CANCEL_SURVEY") {
+                chatRef.current?.submitUserMessage({
+                    text: "__CANCEL_SURVEY__",
+                    role: "system"
+                });
+            }
+        };
 
-      return () => {
-          delete window.handleChatAction;
-      };
+        return () => {
+            delete window.handleChatAction;
+        };
     }, [sessionId, navigate]);
 
     const handleFileUpload = async (file) => {
@@ -104,7 +104,7 @@ const ChatWindow = () => {
                     onClick={() => setIsModalOpen(true)}
                     className="report-upload-button"
                 >
-                    <FaFileUpload />리포트 업로드
+                    <span><FaFileUpload />리포트 업로드</span>
                 </button>
             </div>
 
@@ -157,7 +157,6 @@ const ChatWindow = () => {
                     responseInterceptor={(response) => {
                         if (response?.sessionId) updateSession(response.sessionId);
                         return responseInterceptor(response);
-                        // return ResponseManager.processResponse(response);
                     }}
                     messageStyles={Styles.messageStyle}
                     textInput={Styles.textInputStyle}

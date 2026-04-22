@@ -14,18 +14,6 @@ const Test = () => {
 
 
     useEffect(() => {
-        window.MockSurveyData = {
-            type: "survey_form",
-            text: "간단 설문",
-            data: {
-                questions: [
-                    { id: "q1", label: "운동 빈도", options: ["주 0회", "주 1-2회", "주 3회 이상"] },
-                    { id: "q2", label: "수면 시간", options: ["5시간 이하", "6-7시간", "8시간 이상"] },
-                    { id: "q3", label: "식습관", options: ["규칙적", "불규칙적"] }
-                ]
-            }
-        };
-
         window.changePage = (hidePageId, showPageId) => {
             const hideElement = document.getElementById(hidePageId);
             const showElement = document.getElementById(showPageId);
@@ -94,7 +82,6 @@ const Test = () => {
         return () => {
             delete window.submitSurvey;
             delete window.submitChatResponse;
-            delete window.MockSurveyData;
             delete window.changePage;
         };
     }, [sessionId]);

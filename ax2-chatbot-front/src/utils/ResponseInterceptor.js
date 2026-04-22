@@ -9,11 +9,6 @@ export const responseInterceptor = (response) => {
     try {
       const parsed = JSON.parse(clean);
 
-      // 건강 개선 리포트
-      if (parsed.type === "survey_form") {
-        return ResponseManager.processResponse(parsed);
-      }
-
       // 만약 최종 응답(이미지/비디오 포함) 구조라면 Manager를 통해 HTML 생성
       if (parsed.type && parsed.type !== "text") {
         return ResponseManager.processResponse(parsed);
