@@ -16,6 +16,8 @@ export const ResponseManager = {
               id: parent.id,
               label: parent.suffix,
               placeholder: parent.placeholder,
+              min: parent.min,
+              max: parent.max,
             },
           ];
         }
@@ -23,6 +25,8 @@ export const ResponseManager = {
           id: q.id,
           label: q.suffix,
           placeholder: q.placeholder,
+          min: q.min,
+          max: q.max,
         });
       } else {
         map.set(q.question, { ...q });

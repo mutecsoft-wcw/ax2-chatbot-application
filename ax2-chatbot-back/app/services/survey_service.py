@@ -37,15 +37,15 @@ class SurveyService:
                                 "id": "name",
                                 "type": "text",
                                 "question": "귀하의 성명은 어떻게 되십니까?",
-                                "placeholder": "성함"
+                                "placeholder": "성명"
                             },
                             {
                                 "id": "age",
                                 "type": "number",
                                 "question": "귀하의 연령은 어떻게 되십니까?",
-                                "placeholder": "만 나이",
+                                "placeholder": "만",
                                 "min" : 0,
-                                "max" : 999,
+                                "max" : 200,
                                 "suffix": "세"
                             },
                             {
@@ -79,10 +79,23 @@ class SurveyService:
                                 ]
                             },
                             {
-                                "type": "text",
+                                "type": "select",
                                 "id": "occupation",
                                 "question": "귀하의 직업은 무엇입니까?",
-                                "placeholder": "직업",
+                                "options": [
+                                    {
+                                        "value" : "doctor",
+                                        "label" : "의사"
+                                    },
+                                    {
+                                        "value" : "teacher",
+                                        "label" : "선생"
+                                    },
+                                    {
+                                        "value" : "student",
+                                        "label" : "학생"
+                                    },
+                                ]
                             },
                             {
                                 "type": "radio",
@@ -120,20 +133,16 @@ class SurveyService:
                             },
                             {
                                 "id": "height_cm",
-                                "type": "number",
+                                "type": "text",
                                 "question": "귀하의 신장(cm)은 어떻게 되십니까?",
                                 "placeholder": "",
-                                "min" : 0,
-                                "max" : 999,
                                 "suffix": "cm"
                             },
                             {
                                 "id": "weight_kg",
-                                "type": "number",
+                                "type": "text",
                                 "question": "귀하의 체중(kg)은 어떻게 되십니까?",
                                 "placeholder": "",
-                                "min" : 0,
-                                "max" : 999,
                                 "suffix": "kg"
                             },
                             {
@@ -261,12 +270,12 @@ class SurveyService:
                                 "placeholder": "성함"
                             },
                             {
-                                "id": "age",
-                                "type": "number2",
+                                "id": "age2",
+                                "type": "number",
                                 "question": "귀하의 연령은 어떻게 되십니까?2",
                                 "placeholder": "",
                                 "min" : 0,
-                                "max" : 999,
+                                "max" : 200,
                                 "suffix": "세"
                             },
                             {
@@ -300,10 +309,23 @@ class SurveyService:
                                 ]
                             },
                             {
-                                "type": "text",
+                                "type": "select",
                                 "id": "occupation2",
                                 "question": "귀하의 직업은 무엇입니까?2",
-                                "placeholder": "직업",
+                                "options": [
+                                    {
+                                        "value" : "doctor",
+                                        "label" : "의사"
+                                    },
+                                    {
+                                        "value" : "programer",
+                                        "label" : "프로그래머"
+                                    },
+                                    {
+                                        "value" : "student",
+                                        "label" : "학생"
+                                    },
+                                ]
                             },
                             {
                                 "type": "radio",
@@ -341,20 +363,16 @@ class SurveyService:
                             },
                             {
                                 "id": "height_cm2",
-                                "type": "number",
+                                "type": "text",
                                 "question": "귀하의 신장(cm)은 어떻게 되십니까?2",
                                 "placeholder": "",
-                                "min" : 0,
-                                "max" : 999,
                                 "suffix": "cm"
                             },
                             {
                                 "id": "weight_kg2",
-                                "type": "number",
+                                "type": "text",
                                 "question": "귀하의 체중(kg)은 어떻게 되십니까?2",
                                 "placeholder": "",
-                                "min" : 0,
-                                "max" : 999,
                                 "suffix": "kg"
                             },
                             {

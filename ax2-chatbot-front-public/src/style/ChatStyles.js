@@ -23,7 +23,7 @@ export const textInputStyle = {
       padding: "8px 0",
       width: "80%",
       fontSize: "16px",
-      marginLeft: "-40px"
+      marginLeft: "-40px",
     },
   },
 };
@@ -44,7 +44,7 @@ export const messageStyle = {
         color: "white",
         borderRadius: "18px 18px 2px 18px",
         marginLeft: "auto",
-        maxWidth: "50%"
+        maxWidth: "50%",
       },
     },
     ai: {
@@ -53,7 +53,7 @@ export const messageStyle = {
         color: "#333",
         borderRadius: "18px 18px 18px 2px",
         marginRight: "auto",
-        maxWidth: "80%"
+        maxWidth: "80%",
       },
     },
   },
@@ -106,5 +106,17 @@ export const inputAreaStyles = {
     padding: "12px 16px",
     backgroundColor: "#fff",
     borderTop: "1px solid #f0f0f0",
+  },
+};
+
+export const scrollBtnStyles = {
+  styles: {
+    default: {
+      position: "absolute",
+      left: "90%",
+      background: "#f0f2f5",
+      color: "black",
+      border: "1px solid black",
+    },
   },
 };

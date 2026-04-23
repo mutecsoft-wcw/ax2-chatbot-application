@@ -67,6 +67,24 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.floating-survey-scroll-btn-wrap {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.floating-survey-scroll-btn {
+    position: absolute;
+    bottom: 90px;
+    background: var(--gok-blue);
+    color: white;
+    padding: 2px 40px;
+    border-radius: 25px;
+    cursor: pointer;
+}
+
 @media (min-width: 768px) {
     .container {
         padding: 5px; 

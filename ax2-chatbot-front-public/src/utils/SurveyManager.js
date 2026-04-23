@@ -70,19 +70,18 @@ export const SurveyManager = {
             }
 
             /* 입력 행 스타일 */
-            .input-row { margin-left: 24px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+            .input-row { margin-left: 24px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;}
             
             .gov-input {
                 flex: 1 1 auto; /* 너비가 유연하게 변함 */
-                min-width: 50px;
-                max-width: 30%;
+                min-width: 70px;
+                max-width: 4%;
                 padding: 8px;
                 border: 1px solid #777;
                 border-radius: 2px;
                 font-size: 14px;
                 box-sizing: border-box;
             }
-            .gov-input:focus { border-color: #2c3e50; background: #f9f9f9; }
             
             .gov-select {
                 padding: 5px; border: 1px solid #777; border-radius: 2px;
@@ -150,7 +149,7 @@ export const SurveyManager = {
               <div class="question-content">${q.question}</div>
             </div>
             <div class="input-row">
-              <input class="gov-input" placeholder="${q.placeholder}" />
+              <input type="text" id="${q.id}" class="gov-input" style="width:180px;" placeholder="${q.placeholder}" />
               ${q.suffix || ""}
             </div>
           </div>
@@ -165,7 +164,7 @@ export const SurveyManager = {
               <div class="question-content">${q.question}</div>
             </div>
             <div class="input-row">
-              <input type="number" class="gov-input" style="width:60px;" placeholder="${
+              <input type="number" id="${q.id}" class="gov-input" min="${q.min}" max="${q.max}" style="width:60px;" placeholder="${
                 q.placeholder
               }" min="${q.min}" max="${q.max}"/>
               ${q.suffix || ""}
@@ -186,7 +185,7 @@ export const SurveyManager = {
                   .map(
                     (opt) => `
                   <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; margin-right: 15px;">
-                    <input type="radio" name="${q.id}" value="${opt.value}"/>
+                    <input type="radio" id="${q.id}" name="${q.id}" value="${opt.value}"/>
                     <span>${opt.label}</span>
                   </label>
                 `
@@ -205,7 +204,7 @@ export const SurveyManager = {
               <div class="question-content">${q.question}</div>
             </div>
             <div class="input-row">
-              <select class="gov-select" style="width:180px;">
+              <select id="${q.id}" class="gov-select" style="width:180px;">
                 <option value="">선택</option>
                 ${q.options
                   .map(
@@ -227,7 +226,9 @@ export const SurveyManager = {
           <div style="display: flex; align-items: center; gap: 5px; margin-right: 15px;">
             <input type="number" 
                    class="gov-input" 
-                   id="${u.id}" 
+                   id="${u.id}"
+                   min="${u.min}" 
+                   max="${u.max}" 
                    style="width:60px;" 
                    placeholder="${u.placeholder || ""}" />
             <span class="unit">${u.label}</span>
@@ -253,7 +254,6 @@ export const SurveyManager = {
   },
 
   generateSurveyHtml: (data) => {
-    const surveyId = `survey_${Date.now()}`;
     const totalSections = data.sections.length;
 
     const sectionsHtml = data.sections
@@ -295,7 +295,7 @@ export const SurveyManager = {
     return {
       html: `
         ${SurveyManager.styles}
-        <div id="${surveyId}" class="dynamic-survey-card health-survey-card">
+        <div id="survey_form" class="dynamic-survey-card health-survey-card">
           <div class="main-header-section">
             <h1 class="main-header-title">${data.title}</h1>
             <div class="main-header-subtitle">${data.subtitle}</div>
