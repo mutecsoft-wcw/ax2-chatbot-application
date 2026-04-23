@@ -16,7 +16,7 @@ const ChatWindow = () => {
     const chatRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
-    const [isUpload, setIsUpload] = useState(false);
+    const [isReportReady, setIsReportReady] = useState(false);
 
     const isFetching = useRef(false);
     const hasFetched = useRef(false);
@@ -24,6 +24,40 @@ const ChatWindow = () => {
     const initialHistory = useRef([]);
     const initialQuery = useRef(location.state?.initialMessage || null);
     const isProcessed = useRef(false);
+
+    // 사용자 응답을 통해 리포트 업로드 버튼 노출 여부 결정
+    const handleMessageResponse = () => {
+        if (!chatRef.current || typeof chatRef.current.getMessages !== 'function') {
+            return;
+        }
+
+        const allMessages = chatRef.current.getMessages();
+        if (allMessages.length < 2) return; 
+
+        let isMatched = false;
+
+        for (let i = allMessages.length - 1; i >= 1; i--) {
+            const currentUserMsg = allMessages[i];
+            const prevAiMsg = allMessages[i - 1];
+
+            if (currentUserMsg.role === 'user') {
+                const userText = (currentUserMsg.text || "").trim();
+                const aiText = (prevAiMsg.html || prevAiMsg.text || "").replace(/<[^>]*>?/gm, '');
+
+                const positiveWords = ["예", "응", "네", "그래", "__START_SURVEY__", "좋아"];
+                const isUserPositive = positiveWords.some(word => userText.includes(word));
+                const isAiAsking = aiText.includes("간단 설문을 진행하시겠습니까?"); //
+
+                // 사용자가 긍정했고, 바로 전 메시지가 AI의 특정 질문일 때
+                if (isUserPositive && isAiAsking) {
+                    isMatched = true;
+                    break; // 가장 최근 쌍만 확인하고 종료
+                }
+            }
+        }
+
+        setIsReportReady(isMatched);
+    };
 
     useEffect(() => {
         if (hasFetched.current || isFetching.current) return;
@@ -63,14 +97,14 @@ const ChatWindow = () => {
             if (action === "START_SURVEY") {
                 chatRef.current?.submitUserMessage({
                     text: "__START_SURVEY__",
-                    role: "system"
+                    role: "user"
                 });
             }
 
             if (action === "CANCEL_SURVEY") {
                 chatRef.current?.submitUserMessage({
                     text: "__CANCEL_SURVEY__",
-                    role: "system"
+                    role: "user"
                 });
             }
         };
@@ -100,12 +134,14 @@ const ChatWindow = () => {
         <div className="container">
             <div className="header">
                 <span className="header-title">무엇이든 물어보세요, 건강지기</span>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="report-upload-button"
-                >
-                    <span><FaFileUpload />리포트 업로드</span>
-                </button>
+                {isReportReady && (
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="report-upload-button"
+                    >
+                        <span><FaFileUpload />리포트 업로드</span>
+                    </button>
+                )}
             </div>
 
             {isLoaded ? (
@@ -115,6 +151,11 @@ const ChatWindow = () => {
                     history={initialHistory.current}
                     stream={true}
                     scrollButton={true}
+                    onMessage={() => {
+                        if (chatRef.current) {
+                            handleMessageResponse();
+                        }
+                    }}
                     onComponentRender={(chatElement) => {
                         // 딱 한 번만 실행되도록 제어
                         if (!isProcessed.current && initialQuery.current) {
