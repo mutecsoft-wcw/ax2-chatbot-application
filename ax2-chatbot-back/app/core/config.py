@@ -23,7 +23,8 @@ class Settings:
                 self.embedding = config["embedding"]
                 self.elasticsearch = config["elasticsearch"]
                 self.base_url = self.llm["base_url"].rstrip("/")
-                self.cors_url = config["cors_url"]
+                self.public_cors_url = config["public_cors_url"]
+                self.internal_cors_url = config["internal_cors_url"]
                 self.redis = config["redis"]
 
                 logger.info("설정 파일 로드 성공.")
