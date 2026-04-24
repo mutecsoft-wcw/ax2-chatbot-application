@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'; 
 import { SessionProvider } from './context/SessionContext';
-import Header from './layout/Header';
-import Main from './layout/Main';
+import Header from './route/Header';
+import Main from './route/Main';
 import ChatWindow from './components/ChatWindow';
 import Test from './components/Test';
 
