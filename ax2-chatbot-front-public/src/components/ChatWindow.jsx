@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } 
 import { DeepChat } from 'deep-chat-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SessionContext } from '../context/SessionContext';
-import { analyzeSurveyStatus } from '../utils/ChatUtils'; 
+import { analyzeSurveyStatus } from '../utils/ChatUtils';
 import * as Styles from '../style/ChatStyles';
 import FileUploadModal from './modal/FileUploadModal';
 import { FaFileUpload } from "react-icons/fa";
@@ -15,20 +15,23 @@ import { useChatActions } from '../hooks/useChatActions';
 
 const ChatWindow = () => {
     const { sessionId, updateSession } = useContext(SessionContext);
+    const sessionIdRef = useRef(sessionId);
+    const updateSessionRef = useRef(updateSession);
+
     const location = useLocation();
     const navigate = useNavigate();
     const chatRef = useRef(null);
-    
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isReportReady, setIsReportReady] = useState(false);
 
-    const { 
-        isLoaded, 
-        initialHistory, 
-        initialQuery, 
-        isProcessed 
+    const {
+        isLoaded,
+        initialHistory,
+        initialQuery,
+        isProcessed
     } = useChatInit(sessionId, updateSession, location, navigate);
-
+    
     useChatActions(chatRef);
 
     const [isSurveyActive, setIsSurveyActive] = useState(false);
@@ -37,72 +40,77 @@ const ChatWindow = () => {
     // 메시지 응답 핸들러
     const handleMessageResponse = useCallback(() => {
         if (!chatRef.current?.getMessages) return;
-        
+
         const { hasSurvey, isMatched } = analyzeSurveyStatus(chatRef.current.getMessages());
-        
+
         setIsSurveyActive(hasSurvey);
         setIsReportReady(isMatched);
     }, []);
 
-    const memoizedChat = useMemo(() => (
-        <DeepChat
-            ref={chatRef}
-            style={Styles.chatComponentStyle}
-            history={initialHistory}
-            stream={true}
-            scrollButton={Styles.scrollBtnStyles}
-            onMessage={() => {
-                setTimeout(() => handleMessageResponse(), 100);
-            }}
-            onComponentRender={(chatElement) => {
-                // 딱 한 번만 실행되도록 제어
-                if (!isProcessed.current && initialQuery.current) {
-                    isProcessed.current = true;
+    useEffect(() => {
+        sessionIdRef.current = sessionId;
+        updateSessionRef.current = updateSession;
+    }, [sessionId, updateSession]);
 
-                    // 렌더링이 완전히 끝난 후 전송
-                    setTimeout(() => {
-                        chatElement.submitUserMessage({ text: initialQuery.current });
-                        initialQuery.current = null; // 전송 후 비움
-                    }, 100);
-                }
-            }}
-            connect={{
-                url: `${process.env.REACT_APP_PUBLIC_API_URL}/public/stream-chat`,
-                method: 'POST',
-                stream: 'sse'
-            }}
-            requestInterceptor={(details) => {
-                if (!details.body) return details;
+    const memoizedChat = useMemo(() => {
+        if (!isLoaded) return null;
 
-                try {
-                    const currentBody = typeof details.body === 'string'
-                        ? JSON.parse(details.body)
-                        : details.body;
+        return (
+            <DeepChat
+                ref={chatRef}
+                style={Styles.chatComponentStyle}
+                history={initialHistory} 
+                stream={true}
+                scrollButton={Styles.scrollBtnStyles}
+                onMessage={() => {
+                    setTimeout(() => handleMessageResponse(), 100);
+                }}
+                onComponentRender={(chatElement) => {
+                    if (!isProcessed.current && initialQuery.current) {
+                        isProcessed.current = true;
+                        setTimeout(() => {
+                            chatElement.submitUserMessage({ text: initialQuery.current });
+                            initialQuery.current = null;
+                        }, 100);
+                    }
+                }}
+                connect={{
+                    url: `${process.env.REACT_APP_PUBLIC_API_URL}/public/stream-chat`,
+                    method: 'POST',
+                    stream: 'sse'
+                }}
+                requestInterceptor={(details) => {
+                    if (!details.body) return details;
+                    try {
+                        const currentBody = typeof details.body === 'string'
+                            ? JSON.parse(details.body)
+                            : details.body;
 
-                    // 서버 모델 LlmRequest 규격
-                    const finalPayload = {
-                        messages: (currentBody.messages || []).map(msg => ({
-                            role: msg.role || 'user',
-                            text: msg.text || msg.content || ""
-                        })),
-                        sessionId: sessionId || ""
-                    };
-                    details.body = finalPayload;
-                } catch (e) {
-                    console.error("인터셉터 처리 중 에러:", e);
-                }
-                return details;
-            }}
-            responseInterceptor={(response) => {
-                if (response?.sessionId) updateSession(response.sessionId);
-                return responseInterceptor(response);
-            }}
-            messageStyles={Styles.messageStyle}
-            textInput={Styles.textInputStyle}
-            inputAreaStyle={Styles.inputAreaStyles}
-            submitButtonStyles={Styles.submitButtonStyles}
-        />
-    ), [isLoaded, handleMessageResponse]);
+                        const finalPayload = {
+                            messages: (currentBody.messages || []).map(msg => ({
+                                role: msg.role || 'user',
+                                text: msg.text || msg.content || ""
+                            })),
+                            sessionId: sessionIdRef.current || ""
+                        };
+                        details.body = finalPayload;
+                    } catch (e) {
+                        console.error("인터셉터 처리 중 에러:", e);
+                    }
+                    return details;
+                }}
+                responseInterceptor={(response) => {
+                    if (response?.sessionId) updateSessionRef.current(response.sessionId);
+                    return responseInterceptor(response);
+                }}
+                messageStyles={Styles.messageStyle}
+                textInput={Styles.textInputStyle}
+                inputAreaStyle={Styles.inputAreaStyles}
+                submitButtonStyles={Styles.submitButtonStyles}
+            />
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoaded, handleMessageResponse, initialHistory]);
 
 
     return (
@@ -131,7 +139,7 @@ const ChatWindow = () => {
             <FileUploadModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onUpload={(file) => {/* TODO[wcw] 파일 업로드 로직 */}}
+                onUpload={(file) => {/* TODO[wcw] 파일 업로드 로직 */ }}
             />
         </div>
     );

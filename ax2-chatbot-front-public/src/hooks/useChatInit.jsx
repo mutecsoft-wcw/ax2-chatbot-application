@@ -5,7 +5,7 @@ export const useChatInit = (sessionId, updateSession, location, navigate) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const isFetching = useRef(false);
     const hasFetched = useRef(false);
-    const initialHistory = useRef([]);
+    const [initialHistory, setInitialHistory] = useState([]);
     const initialQuery = useRef(location.state?.initialMessage || null);
     const isProcessed = useRef(false);
 
@@ -23,7 +23,8 @@ export const useChatInit = (sessionId, updateSession, location, navigate) => {
                     if (data.sessionId && data.sessionId !== sessionId) {
                         updateSession(data.sessionId);
                     }
-                    initialHistory.current = data.history || [];
+                    const history = data.history || [];
+                    setInitialHistory(history);
                 }
                 hasFetched.current = true;
             } catch (err) {
@@ -40,11 +41,11 @@ export const useChatInit = (sessionId, updateSession, location, navigate) => {
         };
 
         initChat();
-    }, [sessionId, updateSession, navigate, location.pathname, location.state?.initialMessage]);
+    }, [sessionId, updateSession, navigate, location.pathname, location.state?.initialMessage, isLoaded]);
 
     return {
         isLoaded,
-        initialHistory: initialHistory.current,
+        initialHistory,
         initialQuery,
         isProcessed
     };
