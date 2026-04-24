@@ -21,7 +21,7 @@ const Main = ({ onSearch, isLoading }) => {
         <div className="main-container">
             <div className="search-section">
                 <h1 className="main-title">
-                    궁금하신 건강정보가 있으신가요?
+                    궁금하신 건강정보가 <br />있으신가요?
                 </h1>
 
                 <div className="search-box">
@@ -45,7 +45,7 @@ const Main = ({ onSearch, isLoading }) => {
                 </div>
 
                 <div className="hash-tags">
-                    {["고혈압 원인", "우울증 예방", "당뇨병 식단"].map(tag => (
+                    {["당뇨병 식단", "간단 건강 설문", "건강 개선 설문"].map(tag => (
                         <span
                             key={tag}
                             className="tag"

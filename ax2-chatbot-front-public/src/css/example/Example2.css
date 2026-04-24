@@ -1,0 +1,207 @@
+/* 기본 배경과 폰트 설정 */
+.landing-page {
+    width: 100%;
+    height: 100vh;
+    height: 100%;
+    background-color: #f1f2f7;
+    font-family: 'Pretendard', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  /* 헤더: 고정된 높이와 얇은 경계선 */
+  .landing-header {
+    width: 100%;
+    height: 60px;
+    background-color: #ffffff; 
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 10;
+  }
+
+  .header-inner {
+    width: 100%;
+    /* max-width: 1200px; */
+    margin: 0 auto;
+  }
+  
+  .logo-group {
+    display: flex;
+    align-items: center;
+  }
+  
+  .v-line {
+    width: 1px;
+    height: 16px;
+    background-color: #e0e0e0;
+    margin: 0 15px;
+  }
+  
+  h1.header-title1 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a202c;
+    letter-spacing: -0.5px;
+  }
+  
+  /* 중앙 섹션 */
+  .hero-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .sub-title {
+    display: inline-flex;
+    padding: 6px 16px;
+    background-color: #ebf8ff; /* 연한 파란색 배경 */
+    border-radius: 20px;
+    margin-bottom: -10px;
+  }
+
+  .sub-title h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #005bac; /* 질병관리청 메인 컬러와 유사 */
+    margin: 0;
+  }
+  
+  .main-title {
+    font-size: clamp(1.5rem, 6vw, 2.6rem); /* 최소 1.5rem ~ 최대 2.6rem 유동적 조절 */
+    font-weight: 550;
+    color: #1a202c;
+    line-height: 1.35;
+    margin-bottom: 30px;
+    text-align: center;
+    margin-bottom: 45px;
+    letter-spacing: -1px;
+  }
+  
+  .search-container {
+    width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    margin-right: 20px;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 18px 60px 18px 25px; 
+    border-radius: 10px;
+    border: none;
+    background-color: white;
+    font-size: 1.1rem;
+    box-shadow: 0 10px 30px rgba(0, 91, 172, 0.08);
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+  
+  .search-input::placeholder {
+    color: #a0aec0;
+  }
+  
+  .search-button {
+    position: absolute;
+    right: 15px; 
+    top: 50%;
+    transform: translateY(-50%);
+    background: #003963;
+    border: none;
+    font-size: 1.6rem;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    z-index: 10;
+    border-radius: 10px;;
+  }
+  
+  /* 하단 태그 */
+  .hash-tags {
+    margin-top: 25px;
+    display: flex;
+    gap: 20px;
+  }
+  
+  .hash-tags span {
+    color: #718096;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  
+  .hash-tags span:hover {
+    text-decoration: underline;
+  }
+
+  /* 모바일 대응 (화면 너비 768px 이하) */
+@media (max-width: 768px) {
+    /* 헤더 여백 조정 */
+    .landing-header {
+      padding: 0 20px;
+      height: 60px;
+    }
+  
+    .header-title {
+      font-size: 1rem;
+    }
+  
+    /* 메인 타이틀 크기 축소 및 줄바꿈 허용 */
+    .main-title {
+      font-size: 1.8rem;
+      padding: 0 20px;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: 30px;
+    }
+  
+    /* 검색창 컨테이너 너비 확보 */
+    .search-container {
+      max-width: 100%; /* 화면 양옆 여백 확보 */
+    }
+  
+    .search-input {
+        font-size: 1rem;
+        padding: 15px 50px 15px 15px;
+    }
+  
+    /* 검색 버튼 위치를 입력창 안쪽으로 고정 */
+    .search-button {
+        right: 30px; /* 모바일에서는 조금 더 정밀하게 조정 */
+        font-size: 1.2rem;
+    }
+  
+    /* 해시태그 레이아웃 조정 */
+    .hash-tags {
+      flex-wrap: wrap; /* 공간 부족 시 다음 줄로 넘김 */
+      justify-content: center;
+      gap: 10px 15px;
+      padding: 0 20px;
+    }
+  
+    .hash-tags span {
+      font-size: 0.9rem;
+    }
+  }
+  
+  /* 초소형 기기 (iPhone SE 등 375px 이하) */
+  @media (max-width: 375px) {
+    .main-title {
+      font-size: 1.5rem;
+    }
+    
+    .search-input {
+      padding: 12px 45px 12px 15px;
+    }
+  }

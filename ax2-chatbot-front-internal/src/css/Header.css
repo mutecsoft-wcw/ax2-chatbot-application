@@ -1,0 +1,38 @@
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    height: 70px; 
+    background-color: var(--gok-blue);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+  }
+  
+  .logo-group {
+    display: flex;
+    align-items: center;
+    gap: 8px; 
+    cursor: pointer;
+  }
+  
+  h1.header-title {
+    font-size: 1.2rem; 
+    font-weight: 700;
+    color: #ffffff !important; 
+    white-space: nowrap; 
+    margin: 0; 
+  }
+  
+  .v-line {
+    width: 1px;
+    height: 14px;
+    background-color: #ddd;
+    margin: 0 4px;
+  }
+  
+  @media (max-width: 480px) {
+    .header-title {
+      font-size: 0.95rem; 
+    }
+  }

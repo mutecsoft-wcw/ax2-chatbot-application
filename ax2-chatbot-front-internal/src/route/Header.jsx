@@ -1,20 +1,15 @@
+import Icon from '../icon/Icon';
+import '../css/Header.css';
+
 
 const Header = ({ onLogoClick }) => (
-    <header style={{
-        backgroundColor: 'var(--gok-blue)',
-        color: 'var(--gok-white)',
-        padding: '1rem 2rem',
-        display: 'flex',
-        alignItems: 'center',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-        <h1 onClick={onLogoClick}
-            style={{
-                fontSize: '1.25rem', fontWeight: 'bold', margin: 0, cursor: "pointer", color: "white"
-            }}>
-            AX2 CHAT BOT
-        </h1>
-    </header>
+    <header className="header-inner">
+        <div className="logo-group" onClick={onLogoClick}>
+            <Icon type="mark" height={36} />
+            <div className="v-line"></div>
+            <h1 className="header-title">조사 업무 지원 AI 챗봇</h1>
+        </div>
+    </header >
 );
 
 export default Header;
