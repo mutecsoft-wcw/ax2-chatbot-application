@@ -116,7 +116,7 @@ const ChatWindow = () => {
     return (
         <div className="container">
             <div className="header">
-                <span className="header-title">무엇이든 물어보세요, 건강지기</span>
+                <span className="header-title">대국민 AI 챗봇</span>
                 {isReportReady && (
                     <button onClick={() => setIsModalOpen(true)} className="report-upload-button">
                         <span><FaFileUpload /> 리포트 업로드</span>

@@ -20,7 +20,7 @@ function AppContent() {
 
     return (
         <div className="App" style={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
-            {/* <Header onLogoClick={() => navigate('/')} /> */}
+            <Header onLogoClick={() => navigate('/')} />
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <Routes>
                     <Route path="/" element={<Main onSearch={handleSearch} />} />

@@ -16,7 +16,7 @@ const ExampleChat2 = () => {
                     <div className="logo-group" onClick={() => navigate('/example2')}>
                         <Icon type="mark" height={36} />
                         <div className="v-line"></div>
-                        <h1 className="header-title1">건강지기 AI 챗봇</h1>
+                        <h1 className="header-title1">대국민 AI 챗봇</h1>
                     </div>
                 </div>
             </header>
